@@ -50,9 +50,12 @@ jobs:
         env:
           PACKER_LOG: 1
 
+      - name: Compress image
+        run: sudo xz output-ubuntu/image
+
       # additional steps to process artifacts
       - name: Image as artifact
         uses: actions/upload-artifact@v3
         with:
           name: image
-          path: output-ubuntu/image
+          path: output-ubuntu/image.xz
