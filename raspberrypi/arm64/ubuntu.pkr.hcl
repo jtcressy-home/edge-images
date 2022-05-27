@@ -11,7 +11,7 @@ source "arm-image" "ubuntu" {
   iso_url = "https://cdimage.ubuntu.com/releases/22.04/release/ubuntu-22.04-preinstalled-server-arm64+raspi.img.xz"
   iso_checksum = "file:https://cdimage.ubuntu.com/releases/22.04/release/SHA256SUMS"
   image_type = ""
-  resolv-conf = "bind-host"
+  resolv-conf = "delete"
   image_mounts = ["/boot/firmware", "/"]
   qemu_binary = "qemu-aarch64-static"
 }
