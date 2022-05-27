@@ -22,6 +22,7 @@ build {
   provisioner "shell" {
     inline = [
       "set -x",
+      "echo 'nameserver 1.1.1.1' > /etc/resolv.conf",
       "curl -L -vvv https://api.github.com/repos/jtcressy-home/edged/releases/latest",
       "URL=$(curl -L -s https://api.github.com/repos/jtcressy-home/edged/releases/latest | grep -o -E 'https://(.*)edged-getty(.*)_linux_arm64.deb')",
       "echo $URL",
