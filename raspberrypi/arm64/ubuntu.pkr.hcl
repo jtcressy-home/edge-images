@@ -26,8 +26,8 @@ build {
       "curl -L -vvv https://api.github.com/repos/jtcressy-home/edged/releases/latest",
       "URL=$(curl -L -s https://api.github.com/repos/jtcressy-home/edged/releases/latest | grep -o -E 'https://(.*)edged-getty(.*)_linux_arm64.deb')",
       "echo $URL",
-      "curl -L -s $URL",
-      "dpkg -i edged-getty*.deb"
+      "curl -L -s $URL -o edged-getty.deb",
+      "dpkg -i edged-getty.deb"
     ]
   }
 
