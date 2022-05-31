@@ -51,7 +51,9 @@ jobs:
           PACKER_LOG: 1
 
       - name: Compress image
-        run: sudo xz output-ubuntu/image
+        run: |
+          sudo mv output-ubuntu/image output-ubuntu/image.img
+          sudo xz output-ubuntu/image.img
 
       # additional steps to process artifacts
       - name: Image as artifact
