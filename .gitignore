@@ -1,0 +1,7 @@
+*.iso
+*.iso.sha256
+/cli/tailos
+/cli/cli
+/tailos
+/dist
+/build
