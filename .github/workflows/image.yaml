@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - flavor: "opensuse"
+#          - flavor: "opensuse"
           #- flavor: "tumbleweed"
           #- flavor: "fedora"
           #- flavor: "ubuntu"
