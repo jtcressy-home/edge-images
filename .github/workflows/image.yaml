@@ -38,7 +38,7 @@ jobs:
         uses: sigstore/cosign-installer@main
 
       - name: Login to GHCR
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -86,7 +86,7 @@ jobs:
             *.ipxe
           if-no-files-found: error
       - name: Push to registry
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
