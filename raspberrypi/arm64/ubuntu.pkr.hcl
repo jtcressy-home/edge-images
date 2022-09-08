@@ -8,7 +8,7 @@ packer {
 }
 
 source "arm-image" "ubuntu" {
-  iso_url = "https://cdimage.ubuntu.com/releases/22.04/release/ubuntu-22.04-preinstalled-server-arm64+raspi.img.xz"
+  iso_url = "https://cdimage.ubuntu.com/releases/22.04.1/release/ubuntu-22.04.1-preinstalled-server-arm64+raspi.img.xz"
   iso_checksum = "file:https://cdimage.ubuntu.com/releases/22.04/release/SHA256SUMS"
   image_type = ""
   resolv-conf = "delete"
