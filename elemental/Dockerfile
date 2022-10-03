@@ -1,5 +1,5 @@
-ARG LUET_VERISON=0.20.6
-FROM quay.io/luet/base:$LUET_VERSION AS luet
+
+FROM quay.io/luet/base:0.20.6 AS luet
 
 FROM quay.io/costoolkit/releases-teal:cos-system-0.8.10-1
 
