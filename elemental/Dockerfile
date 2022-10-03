@@ -5,7 +5,7 @@ RUN mkdir -p /etc/tailscale && \
     mkdir -p /lib/systemd/system && \
     mkdir -p /usr/bin
     
-COPY files/ /
+ADD ./files/ /
 
 # Install tailscale repo
 RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
