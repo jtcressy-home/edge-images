@@ -1,5 +1,10 @@
 FROM quay.io/kairos/core-ubuntu:v1.0.0
 
+RUN mkdir -p /etc/tailscale && \
+    mkdir -p /etc/systemd/system/getty@tty1.service.d && \
+    mkdir -p /lib/systemd/system && \
+    mkdir -p /usr/bin
+    
 COPY files/ /
 
 # Install tailscale repo
