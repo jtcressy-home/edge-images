@@ -3,7 +3,11 @@ FROM quay.io/kairos/core-ubuntu:v1.0.0
 RUN mkdir -p /etc/tailscale && \
     mkdir -p /etc/systemd/system/getty@tty1.service.d && \
     mkdir -p /lib/systemd/system && \
-    mkdir -p /usr/bin
+    mkdir -p /usr/bin && \
+    ls /etc/tailscale && \
+    ls /etc/systemd/system/getty@tty1.service.d && \
+    ls /lib/systemd/system && \
+    ls /usr/bin
     
 ADD ./files/ /
 
