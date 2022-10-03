@@ -28,6 +28,12 @@ jobs:
             reboot: true
             poweroff: false
             auto: true
+          users:
+          - name: ubuntu
+            groups: [sudo]
+            shell: /usr/bin/bash
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            lock_passwd: true
           EOF
       
       - name: Pull Image
