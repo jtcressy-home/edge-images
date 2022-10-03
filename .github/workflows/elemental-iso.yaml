@@ -18,10 +18,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Pull grub2 artifacts
+      - name: Setup cloud-init
         run: |
-          mkdir -p files-iso/boot/grub2
-          wget https://raw.githubusercontent.com/kairos-io/kairos/master/overlay/files-iso/boot/grub2/grub.cfg -O files-iso/boot/grub2/grub.cfg
           cat <<EOF > files-iso/config.yaml
           #node-config
           install:
