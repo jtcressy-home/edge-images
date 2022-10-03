@@ -1,24 +1,16 @@
-
-FROM quay.io/luet/base:0.20.6 AS luet
-
-FROM quay.io/costoolkit/releases-teal:cos-system-0.8.10-1
-
-ENV COSIGN_EXPERIMENTAL=1
-
-ARG ARCH=amd64
-ENV ARCH=${ARCH}
-ENV LUET_NOLOCK=true
-
-COPY conf/luet.yaml /etc/luet/luet.yaml
-
-COPY --from=luet /usr/bin/luet /usr/bin/luet
-
-RUN luet install -y meta/cos-verify
-
-RUN luet install --plugin luet-cosign -y meta/cos-light \
-    utils/k9s \
-    utils/nerdctl \
-    toolchain/elemental-cli
+FROM quay.io/kairos/core-ubuntu:v1.0.0
 
 COPY files/ /
-RUN mkinitrd
+
+# Install tailscale repo
+RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+RUN apt-get update -yqq && \
+    apt-get install -yqq tailscale jq qrencode dmidecode
+
+RUN ln -s '/lib/systemd/system/set-hostname.service' '/etc/systemd/system/multi-user.target.wants/set-hostname.service'
+RUN ln -s '/lib/systemd/system/tailscale-up.service' '/etc/systemd/system/multi-user.target.wants/tailscale-up.service'
+
+RUN export VERSION="jtcressy-tailos-ubuntu"
+RUN envsubst '${VERSION}' </etc/os-release

@@ -1,0 +1,16 @@
+[Unit]
+Description=Keeps tailscale alive, logged in and configured
+After=tailscaled.service
+Requires=tailscaled.service
+
+[Service]
+ExecStart=/bin/bash -c "while true; do tailscale up `/etc/tailscale/up-args.sh`; sleep 5; done"
+Restart=always
+RestartSec=15s
+User=root
+KillMode=process
+IgnoreSIGPIPE=no
+SendSIGHUP=yes
+
+[Install]
+WantedBy=multi-user.target
