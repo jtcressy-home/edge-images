@@ -1,0 +1,40 @@
+---
+
+name: Elemental ISO Disk Image
+
+on:
+  push:
+
+env:
+  IMAGE: ghcr.io/jtcressy-home/edge-images-elemental:main
+
+jobs:
+  elemental-iso:
+    runs-on: ubuntu-latest
+    name: elemental-iso
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Pull grub2 artifacts
+        run: |
+          mkdir -p files-iso/boot/grub2
+          wget https://raw.githubusercontent.com/kairos-io/kairos/master/overlay/files-iso/boot/grub2/grub.cfg -O files-iso/boot/grub2/grub.cfg
+          cat <<EOF > files-iso/config.yaml
+          #node-config
+          install:
+            device: "/dev/sda"
+            reboot: true
+            poweroff: false
+            auto: true
+          EOF
+      
+      - name: Pull Image
+        run: |
+          docker pull $IMAGE
+
+      - name: Build ISO with $IMAGE
+        run: |
+          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 --name "custom-iso" --debug build-iso --date=false --local --overlay-iso /cOS/files-iso $IMAGE --output /cOS/
