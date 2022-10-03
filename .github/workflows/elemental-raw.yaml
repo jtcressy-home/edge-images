@@ -41,7 +41,7 @@ jobs:
 
       - name: Generate and Install Image
         run: |
-          qemu-img create -f raw disk.img 4G
+          qemu-img create -f raw disk.img 32G
           DEVICE=$(sudo losetup -f --show disk.img)
           sudo elemental install --firmware efi --system.uri docker:ghcr.io/jtcressy-home/edge-images-elemental:main $DEVICE
 
