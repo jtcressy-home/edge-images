@@ -17,7 +17,7 @@ RUN luet install -y meta/cos-verify
 
 RUN luet install --plugin luet-cosign -y meta/cos-light \
     utils/k9s \
-    utils/nerdct \
+    utils/nerdctl \
     toolchain/elemental-cli
 
 COPY files/ /
