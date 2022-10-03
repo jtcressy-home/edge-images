@@ -1,0 +1,55 @@
+---
+
+name: Elemental Raw Disk Image
+
+on:
+  push:
+
+
+jobs:
+  elemental-raw:
+    runs-on: ubuntu-latest
+    name: elemental-raw
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - run: |
+          file $(which losetup)
+          ls -lah $(which losetup)
+          sudo rm -rf $(which losetup)
+          sudo apt install -y --reinstall util-linux mount
+          sudo apt remove -y busybox
+          file $(which losetup)
+          ls -lah $(which losetup)
+          losetup -h
+
+      - name: Install required packages
+        run: |
+          sudo apt update -yqq
+          sudo apt install -yqq qemu-utils rsync parted dmsetup util-linux udev e2fsprogs
+      
+      - name: Install elemental toolkit CLI
+        run: |
+          wget https://github.com/rancher/elemental-cli/releases/download/v0.0.16/elemental-v0.0.16-Linux-x86_64.tar.gz
+          tar -xvf elemental-v0.0.16-Linux-x86_64.tar.gz /tmp/elemental/
+          sudo mv /tmp/elemental/elemental /usr/local/bin/elemental
+
+      - name: Generate and Install Image
+        run: |
+          qemu-img create -f raw disk.img 4G
+          DEVICE=$(sudo losetup -f --show disk.img)
+          sudo elemental install --firmware efi --system.uri docker:ghcr.io/jtcressy-home/edge-images-elemental:main $DEVICE
+
+      - name: Compress Image
+        run: |
+          sudo xz disk.img
+      
+      - name: Image Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: image
+          path: disk.img.xz
