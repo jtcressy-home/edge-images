@@ -10,7 +10,8 @@ jobs:
     strategy:
       matrix: 
         target:
-          - raspberrypi/arm64
+          - ubuntu-preinstalled/arm64+raspi
+          # - ubuntu-preinstalled/amd64
     runs-on: ubuntu-latest
     name: packer
     
