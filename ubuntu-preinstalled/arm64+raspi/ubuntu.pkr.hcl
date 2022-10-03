@@ -8,8 +8,8 @@ packer {
 }
 
 source "arm-image" "ubuntu" {
-  iso_url = "https://cdimage.ubuntu.com/releases/22.04.1/release/ubuntu-22.04.1-preinstalled-server-arm64+raspi.img.xz"
-  iso_checksum = "file:https://cdimage.ubuntu.com/releases/22.04.1/release/SHA256SUMS"
+  iso_url = "https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-preinstalled/current/jammy-preinstalled-server-arm64+raspi.img.xz"
+  iso_checksum = "file:https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-preinstalled/current/SHA256SUMS"
   image_type = ""
   resolv-conf = "delete"
   image_mounts = ["/boot/firmware", "/"]
