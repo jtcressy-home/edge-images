@@ -3,11 +3,7 @@ FROM quay.io/kairos/core-ubuntu:v1.0.0
 RUN mkdir -p /etc/tailscale && \
     mkdir -p /etc/systemd/system/getty@tty1.service.d && \
     mkdir -p /lib/systemd/system && \
-    mkdir -p /usr/bin && \
-    ls /etc/tailscale && \
-    ls /etc/systemd/system/getty@tty1.service.d && \
-    ls /lib/systemd/system && \
-    ls /usr/bin
+    mkdir -p /usr/bin
     
 ADD ./files/ /
 
@@ -15,9 +11,10 @@ RUN chmod +x /etc/tailscale/up-args.sh && \
     chmod +x /usr/bin/set-hostname.py
 
 RUN useradd -ms /bin/bash ubuntu && \
+    groupadd admin && \
     usermod -aG admin ubuntu && \
+    sed -i 's/\%admin ALL=(ALL) ALL/\%admin ALL=(ALL) NOPASSWD:ALL/g' /etc/sudoers && \
     mkdir -p /home/ubuntu/.ssh && \
-    echo "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFgBznnnmE3UHLpzPf4pZO2Sfoayp+2yHEhlq467VHXEJF+q8sPJXBrAECD+qBR0T49OAwvDtH5EbfCaQXUz9P8= cardno:10 179 837" >> /home/ubuntu/.ssh/authorized_keys && \
     echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDsd5k9qXFm08MNwIZ9uf48E+sybjnX10ahYLLBYMkDGCD4hUYcLjKGfeP2VuOWEcv+65bzUq5rDmw1I+JIO3kHUHLHVKxgOusefKbDYcs+mkcovEoCdWl/LEmrjWHh5INaNY1aBprZ0/irW1TQQxMjYbqIbS5pfWfLK/HcLO4fG8Yx79zSRwzlB411OZzQ0Q2xjHXS/wOnAzD9c2v97/B1XGyuVLwDJpzsnUHMXYulPGlF6nORI5Cwgj0aPOsnKUMj9ink1kyQaKEmvo3TJFf2yrxqgLzJ985cgI9FKAjKvKj2R/nCXvjiuOJoDL7TKF2D5BKPOTBC9qER1OdV6e7mvNwpTCfFLy399Cc1tWqtsVksxc7zlu7aiso3IeOeV5aTu8kjWtsoOS1tLmM+DeLJfiDorA4dd5Qd5A9qBuhd1GuzgRhtDeENF5lGtZpCmuSfWszPb5sG9QKHDPZF9nXMzDZ7GysRh/E02EDTJ6YNbaTRKVuuc2cYdMgU4v/z3OrNsFBcZmPV8WyoqCF8wz7x/nHh1cYylVIWvicbWw1yFfvYeuoLCBpwQohWVPFBKBDZmzG/KaIujs65EXNBba9sIbzvH2WFzgD2Y5vSOAEv2G5QTyTZJIHohG9Rw/w2zvMQzCTGZyeGdWT15gxASYd0ZF3ypyw5PSEK7Noad1IRBQ== cardno:10 179 837" >> /home/ubuntu/.ssh/authorized_keys
 
 
