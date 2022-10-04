@@ -1,0 +1,143 @@
+---
+
+name: Edgenode Image Pipeline
+
+on:
+  push:
+  pull_request:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  edgenode-image-build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - variant: alpine
+          platforms: linux/amd64
+        - variant: alpine-arm-rpi
+          platforms: linux/arm64
+        - variant: ubuntu
+          platforms: linux/amd64
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set image base name
+        run: |
+          echo "IMAGE_NAME=edgenode-${{ matrix.variant }}" >> $GITHUB_ENV
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to the Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v2
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=schedule
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+
+      # TODO: Also sign images with cosign
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          file: images/Dockerfile.${{ matrix.variant }}
+          context: overlay/
+          platforms: ${{ matrix.platforms }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Save image tags as artifact
+        run: |
+          cat <<EOF > edgenode-${{ matrix.variant }}-oci.txt
+          ${{ steps.meta.outputs.tags }}
+          EOF
+
+      - name: Export Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: edgenode-${{ matrix.variant }}-oci
+          path: "*-oci.txt"
+
+
+  edgenode-image-iso:
+    runs-on: ubuntu-latest
+    needs: edgenode-image-build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - variant: alpine
+        - variant: ubuntu
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v2
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.variant }}
+          tags: |
+            type=sha
+      
+      - name: Pull Image
+        run: |
+          docker pull ${{ steps.meta.outputs.tags }}
+
+      - name: Build ISO
+        run: |
+          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 --name "edgenode-${{ matrix.variant }}" --debug build-iso --date=false --local --overlay-iso /cOS/overlay/files-iso ${{ steps.meta.outputs.tags }} --output /cOS/
+
+      - name: Export Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: edgenode-${{ matrix.variant }}-iso
+          path: "*.iso"
+
+  edgenode-image-release:
+    runs-on: ubuntu-latest
+    needs: edgenode-image-build
+    if: startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        id: download
+
+      - uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "edgenode-*/*"
+          overwrite: true
+          update_latest_release: true
+          tags: true
