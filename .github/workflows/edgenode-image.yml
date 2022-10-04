@@ -84,6 +84,7 @@ jobs:
 
   edgenode-image-build:
     runs-on: ubuntu-latest
+    needs: framework-image-build
     strategy:
       fail-fast: false
       matrix:
