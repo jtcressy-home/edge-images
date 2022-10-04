@@ -1,0 +1,1 @@
+FROM quay.io/kairos/core-alpine:v1.0.0

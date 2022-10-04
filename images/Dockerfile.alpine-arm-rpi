@@ -1,0 +1,1 @@
+FROM quay.io/kairos/core-alpine-arm-rpi:v1.0.0
