@@ -124,7 +124,9 @@ jobs:
 
   edgenode-image-release:
     runs-on: ubuntu-latest
-    needs: edgenode-image-build
+    needs:
+    - edgenode-image-build
+    - edgenode-image-iso
     if: startsWith(github.event.ref, 'refs/tags/v')
     steps:
       - name: Checkout Repository
