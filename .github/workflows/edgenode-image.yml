@@ -106,7 +106,7 @@ jobs:
 
       - name: Set image base name
         run: |
-          echo "IMAGE_NAME=edgenode-${{ matrix.flavor }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}" >> $GITHUB_ENV
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
