@@ -4,7 +4,7 @@ COPY --from=quay.io/luet/base:0.32.4 /usr/bin/luet /usr/bin/luet
 
 ENV USER=root
 
-ARG REPOSITORIES_FILE=repositories.yaml
+ARG REPOSITORIES_FILE=repositories.yaml.ubuntu
 
 COPY framework/repositories/$REPOSITORIES_FILE /etc/luet/luet.yaml
 
@@ -17,7 +17,15 @@ RUN /usr/bin/luet install -y --system-target /framework \
     cloud-config/boot-assessment \
     cloud-config/rootfs
 
-RUN /usr/bin/luet install -y --system-target /framework system/shim system/grub2-efi
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ] \n\
+    then \n\
+        /usr/bin/luet install -y --system-target /framework system/shim system/grub2-efi \n\
+    elif [ "$TARGETPLATFORM" = "linux/arm64"] \n\
+    then \n\
+        /usr/bin/luet install -y --system-target /framework system/shim system/grub2-arm64-efi \n\
+    else \n\
+        /usr/bin/luet install -y --system-target /framework system/shim \n\
+    fi
 
 RUN /usr/bin/luet cleanup --system-target /framework
 COPY overlay/files /framework
