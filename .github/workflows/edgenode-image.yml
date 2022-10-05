@@ -47,7 +47,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=schedule
             type=semver,pattern=v{{version}}
@@ -122,7 +122,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=schedule
             type=semver,pattern=v{{version}}
@@ -142,8 +142,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args:
-          - FRAMEWORK_IMAGE_TAG: ${{ github.sha }}
+          build-args: |
+            FRAMEWORK_IMAGE_TAG: ${{ github.sha }}
 
       - name: Save image tags as artifact
         run: |
@@ -181,7 +181,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v2
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}
+          images: ${{ env.REGISTRY }}/edgenode-${{ matrix.flavor }}
           tags: |
             type=sha
       
