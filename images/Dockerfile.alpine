@@ -8,6 +8,8 @@ FROM $BASE_IMAGE
 
 COPY --from=framework / /
 
+COPY overlay/files-alpine /
+
 RUN apk --no-cache add  \
       grub \
       grub-efi \

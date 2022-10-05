@@ -138,7 +138,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           file: images/Dockerfile.${{ matrix.flavor }}
-          context: overlay/
+          context: ""
           platforms: ${{ matrix.platforms }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
