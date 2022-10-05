@@ -13,7 +13,6 @@ COPY overlay/files-alpine /
 RUN apk --no-cache add  \
       grub \
       grub-efi \
-      grub-bios \
       bash \
       connman \
       gettext \
@@ -101,6 +100,10 @@ RUN apk --no-cache add  \
       open-vm-tools-static \
       open-vm-tools-vmbackup \
       openntpd
+
+ARG TARGETPLATFORM
+
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then apk --no-cache add grub-bios; fi
 
 RUN mkdir -p /etc/runlevels/default && \
       ln -sf /etc/init.d/cos-setup-boot /etc/runlevels/default/cos-setup-boot  && \
