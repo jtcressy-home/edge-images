@@ -142,8 +142,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            FRAMEWORK_IMAGE_TAG=${{ github.sha }}
+          build-args:
+          - FRAMEWORK_IMAGE_TAG: ${{ github.sha }}
 
       - name: Save image tags as artifact
         run: |
