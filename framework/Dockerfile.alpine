@@ -22,15 +22,7 @@ RUN /usr/bin/luet install -y --system-target /framework \
 
 ARG TARGETPLATFORM
 
-RUN if [ "$TARGETPLATFORM" = "linux/amd64" ] \n\
-    then \n\
-        /usr/bin/luet install -y --system-target /framework system/shim system/grub2-efi \n\
-    elif [ "$TARGETPLATFORM" = "linux/arm64"] \n\
-    then \n\
-        /usr/bin/luet install -y --system-target /framework system/shim system/grub2-arm64-efi \n\
-    else \n\
-        /usr/bin/luet install -y --system-target /framework system/shim \n\
-    fi
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then /usr/bin/luet install -y --system-target /framework system/shim system/grub2-efi; elif [ "$TARGETPLATFORM" = "linux/arm64"]; then /usr/bin/luet install -y --system-target /framework system/shim system/grub2-arm64-efi; else /usr/bin/luet install -y --system-target /framework system/shim; fi
 
 RUN /usr/bin/luet cleanup --system-target /framework
 COPY overlay/files /framework
