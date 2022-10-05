@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=alpine
-ARG IMAGE_TAG=main
-ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-alpine:${IMAGE_TAG}
+ARG FRAMEWORK_IMAGE_TAG=main
+ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-alpine:${FRAMEWORK_IMAGE_TAG}
 
 FROM ${FRAMEWORK_IMAGE} as framework
 
