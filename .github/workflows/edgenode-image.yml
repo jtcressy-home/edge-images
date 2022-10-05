@@ -142,6 +142,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          driver-opts: image=moby/buildkit:buildx-stable-1
           build-args: |
             FRAMEWORK_IMAGE_TAG=${{ github.sha }}
 
