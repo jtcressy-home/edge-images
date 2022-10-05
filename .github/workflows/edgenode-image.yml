@@ -185,6 +185,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          buildkitd-flags: --debug
+          driver-opts: image=moby/buildkit:buildx-stable-1
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v2
@@ -195,11 +204,11 @@ jobs:
       
       - name: Pull Image
         run: |
-          docker pull ${{ steps.meta.outputs.tags }}
+          docker pull --platform linux/${{ matrix.arch }} ${{ steps.meta.outputs.tags }}
 
       - name: Build ISO
         run: |
-          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 --name "edgenode-${{ matrix.flavor }}-${{ matrix.arch }}" --arch "${{ matrix.arch }}" --debug build-iso --date=false --local --overlay-iso /cOS/overlay/files-iso ${{ steps.meta.outputs.tags }} --output /cOS/
+          docker run --platform linux/${{ matrix.arch }} -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 --name "edgenode-${{ matrix.flavor }}-${{ matrix.arch }}" --arch "${{ matrix.arch }}" --debug build-iso --date=false --local --overlay-iso /cOS/overlay/files-iso ${{ steps.meta.outputs.tags }} --output /cOS/
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
