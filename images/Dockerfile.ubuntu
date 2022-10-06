@@ -14,7 +14,7 @@ RUN apt update
 RUN apt install -y software-properties-common
 RUN add-apt-repository ppa:oibaf/test
 RUN apt update
-RUN apt install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends\
     systemd \
     grub-pc-bin \
     grub-efi-amd64-bin \
@@ -40,7 +40,7 @@ RUN apt install -y \
     jq \
     neovim \
     open-vm-tools \
-    linux-image-generic-hwe-20.04 && apt-get clean
+    linux-image-generic-hwe-22.04 && apt-get clean
 
 RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install
 RUN ln -s /usr/bin/grub-editenv /usr/bin/grub2-editenv
@@ -62,7 +62,8 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.noarmor.gpg | sudo
 RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
 
 RUN apt-get update -yqq && \
-    apt-get install -yqq tailscale qrencode dmidecode
+    apt-get install -yqq tailscale qrencode dmidecode && \
+    apt-get clean
 
 # RUN ln -s '/lib/systemd/system/set-hostname.service' '/etc/systemd/system/multi-user.target.wants/set-hostname.service'
 # RUN ln -s '/lib/systemd/system/tailscale-up.service' '/etc/systemd/system/multi-user.target.wants/tailscale-up.service'
