@@ -139,7 +139,7 @@ ARG OS_VERSION=${FRAMEWORK_IMAGE_TAG}
 ARG OS_LABEL=latest
 RUN envsubst >/etc/os-release </usr/lib/os-release.tmpl
 
-RUN apk --no-cache add qrencode dmidecode
+RUN apk --no-cache add libqrencode dmidecode
 
 COPY --from=tailscale /usr/local/bin/tailscale /usr/bin/tailscale
 COPY --from=tailscale /usr/local/bin/tailscaled /usr/sbin/tailscaled
