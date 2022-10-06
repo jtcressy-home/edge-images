@@ -1,18 +1,19 @@
+# Docs: https://rancher.github.io/elemental-toolkit/docs/customizing/general_configuration/
 cosign: false
 verify: false
 install:
-  grub-entry-name: "Edge Node OS"
+  grub-entry-name: "TailOS"
   system:
     size: 3000
   recovery-system:
     size: 3000
 upgrade:
-  grub-entry-name: "Edge Node OS"
+  grub-entry-name: "TailOS"
   recovery-system:
     size: 3000
   system:
     size: 3000
 reset:
-  grub-entry-name: "Edge Node OS"
+  grub-entry-name: "TailOS"
   system:
     size: 3000
