@@ -40,9 +40,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends\
     neovim \
     open-vm-tools \
     iproute2 net-tools netplan.io \
-    linux-base linux-firmware linux-generic \
+    linux-base linux-firmware linux-generic initramfs-tools \
     linux-image-generic-hwe-22.04 && apt-get clean
 
+RUN update-initramfs -c -k all
 RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install
 RUN ln -s /usr/bin/grub-editenv /usr/bin/grub2-editenv
 RUN systemctl enable nohang-desktop.service
