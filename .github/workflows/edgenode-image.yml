@@ -236,7 +236,7 @@ jobs:
 
       - name: Build ISO
         run: |
-          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 build-iso --date=false --local --overlay-iso /cOS/overlay/files-iso --config-dir=/cOS/ --output /cOS/
+          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 build-iso --date=false --local --config-dir=/cOS/ --output /cOS/
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
