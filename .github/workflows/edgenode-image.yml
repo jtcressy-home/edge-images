@@ -208,6 +208,8 @@ jobs:
       - name: Pull Image
         run: |
           docker pull --platform linux/${{ matrix.arch }} ${{ steps.meta.outputs.tags }}
+          docker pull quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
+          docker pull quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-livecd-0.0.3-2
 
       - name: Configure ISO manifest
         run: |
