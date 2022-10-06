@@ -2,6 +2,8 @@ ARG BASE_IMAGE=alpine
 ARG FRAMEWORK_IMAGE_TAG=main
 ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-alpine:${FRAMEWORK_IMAGE_TAG}
 
+FROM ghcr.io/tailscale/tailscale:v1.30.2 as tailscale
+
 FROM ${FRAMEWORK_IMAGE} as framework
 
 FROM $BASE_IMAGE
@@ -135,3 +137,12 @@ RUN envsubst >/etc/os-release </usr/lib/os-release.tmpl
 
 # Needed for rpi
 RUN ln -sf Image /boot/vmlinuz
+
+RUN apk --no-cache add qrencode dmidecode
+
+COPY --from=tailscale /usr/local/bin/tailscale /usr/bin/tailscale
+COPY --from=tailscale /usr/local/bin/tailscaled /usr/sbin/tailscaled
+
+RUN rc-update add tailscaled boot && \
+    rc-update add hostname boot && \
+    rc-update add tailscale-up default

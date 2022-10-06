@@ -12,12 +12,12 @@ depend() {
 name=tailscaled
 
 start_pre() {
-    /usr/bin/tailscaled --cleanup
+    /usr/sbin/tailscaled --cleanup
 }
 
-command="/usr/bin/tailscaled"
+command="/usr/sbin/tailscaled"
 command_args="--state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock"
 
 stop_post() {
-    /usr/bin/tailscaled --cleanup
+    /usr/sbin/tailscaled --cleanup
 }
