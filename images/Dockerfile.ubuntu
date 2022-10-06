@@ -25,8 +25,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends\
     sudo \
     iproute2 \
     squashfs-tools \
-    parted dracut \
-    dracut-network tar \
+    parted tar \
     e2fsprogs \
     dosfstools \
     coreutils \
@@ -40,6 +39,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends\
     jq \
     neovim \
     open-vm-tools \
+    linux-base linux-firmware linux-generic \
     linux-image-generic-hwe-22.04 && apt-get clean
 
 RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install
