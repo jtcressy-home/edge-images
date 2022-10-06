@@ -224,16 +224,20 @@ jobs:
             - docker:${{ steps.meta.outputs.tags }}
             # Packages to be installed in the uefi image
             uefi:
-            - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
+            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
+            - channel:live/grub2-efi-image
             # Packages to be installed in the iso image
             image:
-            - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
-            - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-livecd-0.0.3-2
+            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
+            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-livecd-0.0.3-2
+            - channel:live/grub2-efi-image
+            - channel:live/grub2
             - dir:/cOS/overlay/files-iso
             label: "COS_LIVE"
             
           repositories:
             - uri: quay.io/costoolkit/releases-teal${{ (matrix.arch == 'arm64') && '-arm64' || '' }}
+              arch: ${{ matrix.arch }}
           EOF
 
       - name: Build ISO
