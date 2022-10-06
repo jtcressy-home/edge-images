@@ -10,6 +10,6 @@ depend() {
 
 name=tailscale-up
 
-start() {
-    /bin/bash -c "while true; do tailscale up `/etc/tailscale/up-args.sh`; sleep 5; done"
-}
+
+command=/bin/bash
+command_args='-c "while true; do tailscale up \`/etc/tailscale/up-args.sh\`; sleep 5; done"'
