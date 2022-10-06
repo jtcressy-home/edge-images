@@ -39,6 +39,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends\
     jq \
     neovim \
     open-vm-tools \
+    iproute2 net-tools netplan.io \
     linux-base linux-firmware linux-generic \
     linux-image-generic-hwe-22.04 && apt-get clean
 
@@ -47,8 +48,10 @@ RUN ln -s /usr/bin/grub-editenv /usr/bin/grub2-editenv
 RUN systemctl enable nohang-desktop.service
 RUN systemctl enable systemd-networkd
 RUN systemctl enable ssh
-RUN echo "auto lo" > /etc/network/interfaces
-RUN echo "iface lo inet loopback" >> /etc/network/interfaces
+
+# init networking
+# RUN echo "auto lo" > /etc/network/interfaces
+# RUN echo "iface lo inet loopback" >> /etc/network/interfaces
 
 # Enable tmp
 RUN cp -v /usr/share/systemd/tmp.mount /etc/systemd/system/ 
