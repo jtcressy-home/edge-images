@@ -1,0 +1,13 @@
+name: "Start installer on tty1"
+stages:
+    initramfs:
+     - if: |
+            cat /proc/cmdline | grep -q "automatic-install"
+       commands:
+       - systemctl disable getty@tty1
+       - systemctl enable installer
+     - if: |
+            cat /proc/cmdline | grep -q "automatic-install"
+       commands:
+       - sed -i -e 's/tty1.*//g' /etc/inittab
+       - echo "tty1::respawn:/installer.sh" >> /etc/inittab

@@ -1,0 +1,27 @@
+#!/sbin/openrc-run
+
+description="Sets the hostname of the machine."
+
+depend() {
+        keyword -prefix -lxc -docker
+}
+
+start() {
+        if [ -s /etc/hostname ] ; then
+                opts="-F /etc/hostname"
+				elif grep -q Serial "/proc/cpuinfo" ; then
+								mfg="raspberrypi"
+								full_serial=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
+								serial=${full_serial: -8}
+								opts="${mfg}-${serial}"
+				elif dmidecode -s system-uuid ; then
+								mfg=$(dmidecode -s system-manufacturer)
+								serial=$(dmidecode -s system-serial-number)
+								opts=$(echo -n "${mfg}-${serial}" | sed -e 's/[^[:alnum:]]/-/g' | tr -s '-' | tr A-Z a-z)
+        else
+                opts="${hostname:-localhost}"
+        fi
+        ebegin "Setting hostname"
+        hostname $opts
+        eend $?
+}

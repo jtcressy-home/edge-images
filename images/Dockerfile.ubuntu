@@ -1,34 +1,86 @@
-FROM quay.io/kairos/core-ubuntu:v1.0.0
+ARG BASE_IMAGE=ubuntu:jammy
+ARG FRAMEWORK_IMAGE_TAG=main
+ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-ubuntu:${FRAMEWORK_IMAGE_TAG}
 
-RUN mkdir -p /etc/tailscale && \
-    mkdir -p /etc/systemd/system/getty@tty1.service.d && \
-    mkdir -p /lib/systemd/system && \
-    mkdir -p /usr/bin
-    
-ADD ./overlay/files-ubuntu/ /
+FROM ${FRAMEWORK_IMAGE} as framework
 
-RUN chmod +x /etc/tailscale/up-args.sh && \
-    chmod +x /usr/bin/set-hostname.py
+FROM $BASE_IMAGE
 
-RUN useradd -ms /bin/bash ubuntu && \
-    groupadd admin && \
-    usermod -aG admin ubuntu && \
-    sed -i 's/\%admin ALL=(ALL) ALL/\%admin ALL=(ALL) NOPASSWD:ALL/g' /etc/sudoers && \
-    mkdir -p /home/ubuntu/.ssh && \
-    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDsd5k9qXFm08MNwIZ9uf48E+sybjnX10ahYLLBYMkDGCD4hUYcLjKGfeP2VuOWEcv+65bzUq5rDmw1I+JIO3kHUHLHVKxgOusefKbDYcs+mkcovEoCdWl/LEmrjWHh5INaNY1aBprZ0/irW1TQQxMjYbqIbS5pfWfLK/HcLO4fG8Yx79zSRwzlB411OZzQ0Q2xjHXS/wOnAzD9c2v97/B1XGyuVLwDJpzsnUHMXYulPGlF6nORI5Cwgj0aPOsnKUMj9ink1kyQaKEmvo3TJFf2yrxqgLzJ985cgI9FKAjKvKj2R/nCXvjiuOJoDL7TKF2D5BKPOTBC9qER1OdV6e7mvNwpTCfFLy399Cc1tWqtsVksxc7zlu7aiso3IeOeV5aTu8kjWtsoOS1tLmM+DeLJfiDorA4dd5Qd5A9qBuhd1GuzgRhtDeENF5lGtZpCmuSfWszPb5sG9QKHDPZF9nXMzDZ7GysRh/E02EDTJ6YNbaTRKVuuc2cYdMgU4v/z3OrNsFBcZmPV8WyoqCF8wz7x/nHh1cYylVIWvicbWw1yFfvYeuoLCBpwQohWVPFBKBDZmzG/KaIujs65EXNBba9sIbzvH2WFzgD2Y5vSOAEv2G5QTyTZJIHohG9Rw/w2zvMQzCTGZyeGdWT15gxASYd0ZF3ypyw5PSEK7Noad1IRBQ== cardno:10 179 837" >> /home/ubuntu/.ssh/authorized_keys
+COPY --from=framework / /
+  
+COPY overlay/files-ubuntu /
 
+RUN apt update
+RUN apt install -y software-properties-common
+RUN add-apt-repository ppa:oibaf/test
+RUN apt update
+RUN apt install -y \
+    systemd \
+    grub-pc-bin \
+    grub-efi-amd64-bin \
+    grub2 \
+    grub2-common \
+    nohang \
+    grub2-common \
+    sudo \
+    iproute2 \
+    squashfs-tools \
+    parted dracut \
+    dracut-network tar \
+    e2fsprogs \
+    dosfstools \
+    coreutils \
+    debianutils \
+    curl \
+    openssh-server \
+    nano \
+    gawk \
+    haveged \
+    rsync \
+    jq \
+    neovim \
+    open-vm-tools \
+    linux-image-generic-hwe-20.04 && apt-get clean
+
+RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install
+RUN ln -s /usr/bin/grub-editenv /usr/bin/grub2-editenv
+RUN systemctl enable nohang-desktop.service
+RUN systemctl enable systemd-networkd
+RUN systemctl enable ssh
+RUN echo "auto lo" > /etc/network/interfaces
+RUN echo "iface lo inet loopback" >> /etc/network/interfaces
+
+# Enable tmp
+RUN cp -v /usr/share/systemd/tmp.mount /etc/systemd/system/ 
+RUN systemctl enable tmp.mount
+
+# Fixup sudo perms
+RUN chown root:root /usr/bin/sudo && chmod 4755 /usr/bin/sudo
 
 # Install tailscale repo
 RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
 RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
 
 RUN apt-get update -yqq && \
-    apt-get install -yqq tailscale jq qrencode dmidecode
+    apt-get install -yqq tailscale qrencode dmidecode
 
 # RUN ln -s '/lib/systemd/system/set-hostname.service' '/etc/systemd/system/multi-user.target.wants/set-hostname.service'
 # RUN ln -s '/lib/systemd/system/tailscale-up.service' '/etc/systemd/system/multi-user.target.wants/tailscale-up.service'
 RUN systemctl enable set-hostname.service
 RUN systemctl enable tailscale-up.service
 
-RUN export VERSION="jtcressy-tailos-ubuntu"
-RUN envsubst '${VERSION}' </etc/os-release
+
+ARG VARIANT=edgenode
+ARG FLAVOR=ubuntu
+ARG GITHUB_REPO=jtcressy-home/edge-images
+ARG BUG_REPORT_URL=https://github.com/jtcressy-home/edge-images/issues
+ARG HOME_URL=https://github.com/jtcressy-home/edge-images
+ARG OS_ID="tailos"
+ARG OS_NAME="tailos-ubuntu"
+ARG OS_REPO=ghcr.io/jtcressy-home/edgenode-${FLAVOR}
+ARG OS_VERSION=${FRAMEWORK_IMAGE_TAG}
+ARG OS_LABEL=latest
+RUN envsubst >/etc/os-release </usr/lib/os-release.tmpl
+
+# Clear cache
+RUN apt-get clean && rm -rf /var/cache/* && journalctl --vacuum-size=1K && rm /etc/machine-id && rm /var/lib/dbus/machine-id

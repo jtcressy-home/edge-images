@@ -1,0 +1,23 @@
+#!/sbin/openrc-run
+
+# supervise the running process
+supervisor=supervise-daemon
+
+# require network before starting
+depend() {
+    need net
+}
+
+# run tailscale
+name=tailscaled
+
+start_pre() {
+    /usr/bin/tailscaled --cleanup
+}
+
+command="/usr/bin/tailscaled"
+command_args="--state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock"
+
+stop_post() {
+    /usr/bin/tailscaled --cleanup
+}
