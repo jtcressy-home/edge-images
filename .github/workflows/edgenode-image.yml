@@ -4,24 +4,21 @@ name: Edgenode Image Pipeline
 
 on:
   push:
-  pull_request:
 
 env:
   REGISTRY: ghcr.io
 
 jobs:
-  edgenode-image-build:
+  framework-image-build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-        - variant: alpine
-          platforms: linux/amd64
-        - variant: alpine-arm-rpi
-          platforms: linux/arm64
-        - variant: ubuntu
-          platforms: linux/amd64
+        flavor:
+        - alpine
+        - ubuntu
+        platforms:
+        - linux/amd64,linux/arm64
     permissions:
       contents: read
       packages: write
@@ -29,15 +26,18 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set image base name
+      - name: Set Image Base Name
         run: |
-          echo "IMAGE_NAME=edgenode-${{ matrix.variant }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ github.repository }}/framework-${{ matrix.flavor }}" >> $GITHUB_ENV
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+        with:
+          buildkitd-flags: --debug
+          driver-opts: image=moby/buildkit:buildx-stable-1
       
       - name: Login to the Container Registry
         uses: docker/login-action@v2
@@ -48,9 +48,87 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v2
+        uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=schedule
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+            type=sha,prefix=,format=long
+
+      # TODO: Also sign images with cosign
+      - name: Build and push Framework image
+        uses: docker/build-push-action@v3
+        with:
+          file: framework/Dockerfile.${{ matrix.flavor }}
+          context: ""
+          platforms: ${{ matrix.platforms }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Save framework image tags as artifact
+        run: |
+          cat <<EOF > framework-${{ matrix.flavor }}-oci.txt
+          ${{ steps.meta.outputs.tags }}
+          EOF
+
+      - name: Export Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: framework-${{ matrix.flavor }}-oci
+          path: "*-oci.txt"
+
+  edgenode-image-build:
+    runs-on: ubuntu-latest
+    needs: framework-image-build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - flavor: alpine
+          platforms: linux/amd64,linux/arm64
+        - flavor: alpine-arm-rpi
+          platforms: linux/arm64
+        - flavor: ubuntu
+          platforms: linux/amd64
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set image base name
+        run: |
+          echo "IMAGE_NAME=${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}" >> $GITHUB_ENV
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          buildkitd-flags: --debug
+          driver-opts: image=moby/buildkit:buildx-stable-1
+      
+      - name: Login to the Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=schedule
             type=semver,pattern=v{{version}}
@@ -62,25 +140,29 @@ jobs:
 
       # TODO: Also sign images with cosign
       - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        uses: docker/build-push-action@v3
         with:
-          file: images/Dockerfile.${{ matrix.variant }}
-          context: overlay/
+          file: images/Dockerfile.${{ matrix.flavor }}
+          context: ""
           platforms: ${{ matrix.platforms }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+          build-args: |
+            FRAMEWORK_IMAGE_TAG=${{ github.sha }}
 
       - name: Save image tags as artifact
         run: |
-          cat <<EOF > edgenode-${{ matrix.variant }}-oci.txt
+          cat <<EOF > edgenode-${{ matrix.flavor }}-oci.txt
           ${{ steps.meta.outputs.tags }}
           EOF
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: edgenode-${{ matrix.variant }}-oci
+          name: edgenode-${{ matrix.flavor }}-oci
           path: "*-oci.txt"
 
 
@@ -90,9 +172,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-        - variant: alpine
-        - variant: ubuntu
+        flavor:
+        - alpine
+        - ubuntu
+        arch:
+        - x86_64
+        - arm64
     permissions:
       contents: read
       packages: write
@@ -100,26 +185,60 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          buildkitd-flags: --debug
+          driver-opts: image=moby/buildkit:buildx-stable-1
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v2
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.variant }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}
           tags: |
             type=sha
       
       - name: Pull Image
         run: |
-          docker pull ${{ steps.meta.outputs.tags }}
+          docker pull --platform linux/${{ matrix.arch }} ${{ steps.meta.outputs.tags }}
+
+      - name: Configure ISO manifest
+        run: |
+          cat <<EOF > manifest.yaml
+          name: "edgenode-${{ matrix.flavor }}-${{ matrix.arch }}"
+          arch: "${{ matrix.arch }}"
+          debug: true
+
+          iso:
+            # Packages to be installed in the rootfs
+            rootfs:
+            - docker:${{ steps.meta.outputs.tags }}
+            # Packages to be installed in the uefi image
+            uefi:
+            - channel:live/grub2-efi-image
+            # Packages to be installed in the iso image
+            image:
+            - channel:live/grub2-efi-image
+            - channel:live/grub2
+            - dir:/cOS/overlay/files-iso
+            label: "COS_LIVE"
+            
+          repositories:
+            - uri: quay.io/costoolkit/releases-teal${{ (matrix.arch == 'arm64') && '-arm64' || '' }}
+          EOF
 
       - name: Build ISO
         run: |
-          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 --name "edgenode-${{ matrix.variant }}" --debug build-iso --date=false --local --overlay-iso /cOS/overlay/files-iso ${{ steps.meta.outputs.tags }} --output /cOS/
+          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 build-iso --date=false --local --overlay-iso /cOS/overlay/files-iso --config-dir=/cOS/ --output /cOS/
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: edgenode-${{ matrix.variant }}-iso
+          name: edgenode-${{ matrix.flavor }}-${{ matrix.arch }}-iso
           path: "*.iso"
 
   edgenode-image-release:

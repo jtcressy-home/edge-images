@@ -5,7 +5,7 @@ RUN mkdir -p /etc/tailscale && \
     mkdir -p /lib/systemd/system && \
     mkdir -p /usr/bin
     
-ADD ./files-ubuntu/ /
+ADD ./overlay/files-ubuntu/ /
 
 RUN chmod +x /etc/tailscale/up-args.sh && \
     chmod +x /usr/bin/set-hostname.py
