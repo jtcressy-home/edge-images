@@ -167,6 +167,8 @@ jobs:
           labels: |
             ${{ steps.meta.outputs.labels }}
           build-args: |
+            TARGETOS=${{ matrix.os }}
+            TARGETARCH=${{ matrix.arch }}
             FRAMEWORK_IMAGE_TAG=${{ github.sha }}
 
       - name: Save image tags as artifact
