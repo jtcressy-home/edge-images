@@ -1,6 +1,11 @@
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
 ARG BASE_IMAGE=alpine
 ARG FRAMEWORK_IMAGE_TAG=main
-ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-alpine:${FRAMEWORK_IMAGE_TAG}
+ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-alpine-${TARGETARCH}:${FRAMEWORK_IMAGE_TAG}
+
+FROM ghcr.io/tailscale/tailscale:v1.30.2 as tailscale
 
 FROM ${FRAMEWORK_IMAGE} as framework
 
@@ -101,9 +106,7 @@ RUN apk --no-cache add  \
       open-vm-tools-vmbackup \
       openntpd
 
-ARG TARGETPLATFORM
-
-RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then apk --no-cache add grub-bios; fi
+RUN if [ "${TARGETARCH}" = "amd64" ]; then apk --no-cache add grub-bios; fi
 
 RUN mkdir -p /etc/runlevels/default && \
       ln -sf /etc/init.d/cos-setup-boot /etc/runlevels/default/cos-setup-boot  && \
@@ -124,3 +127,24 @@ RUN rc-update add sshd boot && \
 # Symlinks to make elemental installer work
 RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install && \
     ln -s /usr/bin/grub-editenv /usr/bin/grub2-editenv
+
+ARG VARIANT=edgenode
+ARG FLAVOR=ubuntu
+ARG GITHUB_REPO=jtcressy-home/edge-images
+ARG BUG_REPORT_URL=https://github.com/jtcressy-home/edge-images/issues
+ARG HOME_URL=https://github.com/jtcressy-home/edge-images
+ARG OS_ID="tailos"
+ARG OS_NAME="tailos-ubuntu"
+ARG OS_REPO=ghcr.io/jtcressy-home/edgenode-${FLAVOR}
+ARG OS_VERSION=${FRAMEWORK_IMAGE_TAG}
+ARG OS_LABEL=latest
+RUN envsubst >/etc/os-release </usr/lib/os-release.tmpl
+
+RUN apk --no-cache add libqrencode dmidecode
+
+COPY --from=tailscale /usr/local/bin/tailscale /usr/bin/tailscale
+COPY --from=tailscale /usr/local/bin/tailscaled /usr/sbin/tailscaled
+
+RUN rc-update add tailscaled boot && \
+    rc-update add hostname boot && \
+    rc-update add tailscale-up default

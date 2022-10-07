@@ -1,0 +1,15 @@
+#!/sbin/openrc-run
+
+# supervise the running process
+supervisor=supervise-daemon
+
+# require network before starting
+depend() {
+    need net tailscaled
+}
+
+name=tailscale-up
+
+
+command=/bin/bash
+command_args='-c "while true; do tailscale up \`/etc/tailscale/up-args.sh\`; sleep 5; done"'

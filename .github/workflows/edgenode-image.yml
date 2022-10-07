@@ -17,8 +17,11 @@ jobs:
         flavor:
         - alpine
         - ubuntu
-        platforms:
-        - linux/amd64,linux/arm64
+        os:
+        - linux
+        arch:
+        - amd64
+        - arm64
     permissions:
       contents: read
       packages: write
@@ -28,7 +31,7 @@ jobs:
 
       - name: Set Image Base Name
         run: |
-          echo "IMAGE_NAME=${{ github.repository }}/framework-${{ matrix.flavor }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=framework-${{ matrix.flavor }}-${{ matrix.arch }}" >> $GITHUB_ENV
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -50,7 +53,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}
           tags: |
             type=schedule
             type=semver,pattern=v{{version}}
@@ -67,21 +70,21 @@ jobs:
         with:
           file: framework/Dockerfile.${{ matrix.flavor }}
           context: ""
-          platforms: ${{ matrix.platforms }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Save framework image tags as artifact
         run: |
-          cat <<EOF > framework-${{ matrix.flavor }}-oci.txt
+          cat <<EOF > ${{ env.IMAGE_NAME }}-oci.txt
           ${{ steps.meta.outputs.tags }}
           EOF
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: framework-${{ matrix.flavor }}-oci
+          name: ${{ env.IMAGE_NAME }}-oci
           path: "*-oci.txt"
 
   edgenode-image-build:
@@ -90,13 +93,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-        - flavor: alpine
-          platforms: linux/amd64,linux/arm64
-        - flavor: alpine-arm-rpi
-          platforms: linux/arm64
+        flavor:
+        - alpine
+        - alpine-rpi
+        - ubuntu
+        - ubuntu-rpi
+        os:
+        - linux
+        arch:
+        - amd64
+        - arm64
+        exclude:
+        - flavor: alpine-rpi
+          arch: amd64
+        - flavor: ubuntu-rpi
+          arch: amd64
+
+        # TODO: temporary excludes until more work is done to build arm64 ubuntu images
         - flavor: ubuntu
-          platforms: linux/amd64
+          arch: arm64
+        - flavor: ubuntu-rpi
     permissions:
       contents: read
       packages: write
@@ -106,7 +122,7 @@ jobs:
 
       - name: Set image base name
         run: |
-          echo "IMAGE_NAME=${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=edgenode-${{ matrix.flavor }}-${{ matrix.arch }}" >> $GITHUB_ENV
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -128,7 +144,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
             type=schedule
             type=semver,pattern=v{{version}}
@@ -144,27 +160,34 @@ jobs:
         with:
           file: images/Dockerfile.${{ matrix.flavor }}
           context: ""
-          platforms: ${{ matrix.platforms }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: true
           tags: |
             ${{ steps.meta.outputs.tags }}
           labels: |
             ${{ steps.meta.outputs.labels }}
           build-args: |
+            TARGETOS=${{ matrix.os }}
+            TARGETARCH=${{ matrix.arch }}
             FRAMEWORK_IMAGE_TAG=${{ github.sha }}
+            OS_VERSION=${{ github.sha }}
+            FLAVOR=${{ matrix.flavor }}
+            GITHUB_REPO=${{ github.repository }}
+            BUG_REPORT_URL=${{ github.repositoryUrl }}/issues
+            HOME_URL=${{ github.repositoryUrl }}
+            OS_REPO=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
 
       - name: Save image tags as artifact
         run: |
-          cat <<EOF > edgenode-${{ matrix.flavor }}-oci.txt
+          cat <<EOF > ${{ env.IMAGE_NAME }}-oci.txt
           ${{ steps.meta.outputs.tags }}
           EOF
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: edgenode-${{ matrix.flavor }}-oci
+          name: ${{ env.IMAGE_NAME }}-oci
           path: "*-oci.txt"
-
 
   edgenode-image-iso:
     runs-on: ubuntu-latest
@@ -176,8 +199,11 @@ jobs:
         - alpine
         - ubuntu
         arch:
-        - x86_64
+        - amd64
         - arm64
+        exclude:
+        - flavor: ubuntu
+          arch: arm64
     permissions:
       contents: read
       packages: write
@@ -198,19 +224,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@v2
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
             type=sha
       
       - name: Pull Image
         run: |
-          docker pull --platform linux/${{ matrix.arch }} ${{ steps.meta.outputs.tags }}
+          docker pull ${{ steps.meta.outputs.tags }}
+          docker pull quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
+          docker pull quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-livecd-0.0.3-2
 
       - name: Configure ISO manifest
         run: |
           cat <<EOF > manifest.yaml
           name: "edgenode-${{ matrix.flavor }}-${{ matrix.arch }}"
-          arch: "${{ matrix.arch }}"
+          arch: "${{ (matrix.arch == 'amd64') && 'x86_64' || matrix.arch }}"
           debug: true
 
           iso:
@@ -219,9 +247,12 @@ jobs:
             - docker:${{ steps.meta.outputs.tags }}
             # Packages to be installed in the uefi image
             uefi:
+            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
             - channel:live/grub2-efi-image
             # Packages to be installed in the iso image
             image:
+            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
+            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-livecd-0.0.3-2
             - channel:live/grub2-efi-image
             - channel:live/grub2
             - dir:/cOS/overlay/files-iso
@@ -229,11 +260,12 @@ jobs:
             
           repositories:
             - uri: quay.io/costoolkit/releases-teal${{ (matrix.arch == 'arm64') && '-arm64' || '' }}
+              arch: ${{ (matrix.arch == 'amd64') && 'x86_64' || matrix.arch }}
           EOF
 
       - name: Build ISO
         run: |
-          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm quay.io/kairos/osbuilder-tools:v0.1.1 build-iso --date=false --local --overlay-iso /cOS/overlay/files-iso --config-dir=/cOS/ --output /cOS/
+          docker run -v $PWD:/cOS -v /var/run/docker.sock:/var/run/docker.sock -i --rm --entrypoint=/usr/bin/elemental quay.io/kairos/osbuilder-tools:v0.1.1 --config-dir=/cOS/ build-iso --date=false --local --output /cOS/
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3

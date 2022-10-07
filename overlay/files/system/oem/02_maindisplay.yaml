@@ -1,0 +1,8 @@
+name: "Show tailscale status on tty1"
+stages:
+  initramfs:
+    - if: |
+        [ -f "/etc/inittab" ] && [ ! -f /run/cos/live_mode ]
+      commands:
+      - sed -i -e 's/tty1.*//g' /etc/inittab
+      - echo "tty1::respawn:/usr/bin/tailos-dashboard.sh" >> /etc/inittab
