@@ -170,6 +170,12 @@ jobs:
             TARGETOS=${{ matrix.os }}
             TARGETARCH=${{ matrix.arch }}
             FRAMEWORK_IMAGE_TAG=${{ github.sha }}
+            OS_VERSION=${{ github.sha }}
+            FLAVOR=${{ matrix.flavor }}
+            GITHUB_REPO=${{ github.repository }}
+            BUG_REPORT_URL=${{ github.repositoryUrl }}/issues
+            HOME_URL=${{ github.repositoryUrl }}
+            OS_REPO=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
 
       - name: Save image tags as artifact
         run: |
