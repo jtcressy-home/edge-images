@@ -232,7 +232,7 @@ jobs:
         run: |
           cat <<EOF > manifest.yaml
           name: "edgenode-${{ matrix.flavor }}-${{ matrix.arch }}"
-          arch: "${{ matrix.arch }}"
+          arch: "${{ (matrix.arch == 'amd64') && 'x86_64' || matrix.arch }}"
           debug: true
 
           iso:
@@ -254,7 +254,7 @@ jobs:
             
           repositories:
             - uri: quay.io/costoolkit/releases-teal${{ (matrix.arch == 'arm64') && '-arm64' || '' }}
-              arch: ${{ matrix.arch }}
+              arch: ${{ (matrix.arch == 'amd64') && 'x86_64' || matrix.arch }}
           EOF
 
       - name: Build ISO
