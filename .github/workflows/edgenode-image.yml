@@ -95,24 +95,24 @@ jobs:
       matrix:
         flavor:
         - alpine
-        - alpine-arm-rpi
+        - alpine-rpi
         - ubuntu
-        - ubuntu-arm-rpi
+        - ubuntu-rpi
         os:
         - linux
         arch:
         - amd64
         - arm64
         exclude:
-        - flavor: alpine-arm-rpi
+        - flavor: alpine-rpi
           arch: amd64
-        - flavor: ubuntu-arm-rpi
+        - flavor: ubuntu-rpi
           arch: amd64
 
         # TODO: temporary excludes until more work is done to build arm64 ubuntu images
         - flavor: ubuntu
           arch: arm64
-        - flavor: ubuntu-arm-rpi
+        - flavor: ubuntu-rpi
     permissions:
       contents: read
       packages: write
