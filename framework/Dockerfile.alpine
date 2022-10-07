@@ -18,7 +18,8 @@ RUN /usr/bin/luet install -y --system-target /framework \
     cloud-config/rootfs \
     system-openrc/cos-setup \
     system/kernel \
-    system/dracut-initrd
+    system/dracut-initrd \
+    utils/installer
 
 RUN /usr/bin/luet install -y --system-target /framework system/grub2-efi-image system/grub2-artifacts
 

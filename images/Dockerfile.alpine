@@ -1,6 +1,9 @@
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
 ARG BASE_IMAGE=alpine
 ARG FRAMEWORK_IMAGE_TAG=main
-ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-alpine:${FRAMEWORK_IMAGE_TAG}
+ARG FRAMEWORK_IMAGE=ghcr.io/jtcressy-home/edge-images/framework-alpine-${TARGETARCH}:${FRAMEWORK_IMAGE_TAG}
 
 FROM ghcr.io/tailscale/tailscale:v1.30.2 as tailscale
 
@@ -103,9 +106,7 @@ RUN apk --no-cache add  \
       open-vm-tools-vmbackup \
       openntpd
 
-ARG TARGETPLATFORM
-
-RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then apk --no-cache add grub-bios; fi
+RUN if [ "${TARGETARCH}" = "amd64" ]; then apk --no-cache add grub-bios; fi
 
 RUN mkdir -p /etc/runlevels/default && \
       ln -sf /etc/init.d/cos-setup-boot /etc/runlevels/default/cos-setup-boot  && \

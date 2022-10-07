@@ -15,7 +15,8 @@ RUN /usr/bin/luet install -y --system-target /framework \
     cloud-config/live \
     cloud-config/network \
     cloud-config/boot-assessment \
-    cloud-config/rootfs
+    cloud-config/rootfs \
+    utils/installer
 
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then /usr/bin/luet install -y --system-target /framework system/shim system/grub2-efi; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then /usr/bin/luet install -y --system-target /framework system/grub2-arm64-efi; fi
 
