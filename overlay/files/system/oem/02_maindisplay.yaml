@@ -4,5 +4,5 @@ stages:
     - if: |
         [ -f "/etc/inittab" ] && [ ! -f /run/cos/live_mode ]
       commands:
-      - set -i -e 's/tty1.*//g' /etc/inittab
-      - echo "tty1::respawn:/bin/bash -c \"while true; do clear; cat /etc/issue; tailscale status; (tailscale status --json | jq -r '.AuthURL' | qrencode -t ANSI); sleep 5; done;\"" >> /etc/inittab
+      - sed -i -e 's/tty1.*//g' /etc/inittab
+      - echo "tty1::respawn:/bin/bash -c \"while true; do clear; cat /etc/issue; tailscale status; (tailscale status --json | jq -r '.AuthURL' | qrencode -t ANSIUTF8i); sleep 5; done;\"" >> /etc/inittab
