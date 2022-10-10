@@ -9,6 +9,6 @@ LimitNOFILE=49152
 ExecStartPre=-/bin/sh -c "dmesg -D"
 TTYPath=/dev/tty1
 RemainAfterExit=yes
-ExecStart=/usr/bin/tailos-installer.sh
+ExecStart=/usr/bin/edgenode-installer.sh
 [Install]
 WantedBy=multi-user.target

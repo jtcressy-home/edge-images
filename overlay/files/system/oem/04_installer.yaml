@@ -10,4 +10,4 @@ stages:
             cat /proc/cmdline | grep -q "automatic-install"
        commands:
        - sed -i -e 's/tty1.*//g' /etc/inittab
-       - echo "tty1::respawn:/usr/bin/tailos-installer.sh" >> /etc/inittab
+       - echo "tty1::respawn:/usr/bin/edgenode-installer.sh" >> /etc/inittab
