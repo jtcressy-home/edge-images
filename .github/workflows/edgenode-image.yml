@@ -275,7 +275,7 @@ jobs:
 
   edgenode-image-rpi:
     runs-on: ubuntu-latest
-    # needs: edgenode-image-build
+    needs: edgenode-image-build
     strategy:
       fail-fast: false
       matrix:
@@ -303,7 +303,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
-            type=ref,event=branch
+            type=sha
 
       - name: Pull Image
         run: |
@@ -322,7 +322,6 @@ jobs:
           docker rm -v $id
 
       - name: Build RPi Image
-        # uses: docker://quay.io/costoolkit/elemental-cli:v0.0.15-8a78e6b
         env:
           MODEL: rpi64
           IMAGE_NAME: edgenode-${{ matrix.flavor }}-${{ matrix.arch }}.img
@@ -332,16 +331,14 @@ jobs:
           DEFAULT_ACTIVE_SIZE: "2000"
         run: |
           sudo apt install -y gdisk kpartx
-          (cd elemental-toolkit && sudo images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME && mv $IMAGE_NAME ../)
-        # with:
-        #   entrypoint: /bin/bash
-        #   args: -c "zypper in -y jq docker git curl gptfdisk kpartx sudo && sudo cp ./luet /usr/bin/luet && git config --global --add safe.directory '*' && sudo ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME"
+          mkdir -p elemental-toolkit/build
+          (cd elemental-toolkit && sudo images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} build/$IMAGE_NAME && mv build ../)
 
       - name: packaging
         env:
           IMAGE_NAME: edgenode-${{ matrix.flavor }}-${{ matrix.arch }}.img
         run: |
-          xz -v $IMAGE_NAME
+          xz -v build/$IMAGE_NAME
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
