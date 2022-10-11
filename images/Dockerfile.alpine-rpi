@@ -132,14 +132,14 @@ ARG GITHUB_REPO=jtcressy-home/edge-images
 ARG BUG_REPORT_URL=https://github.com/jtcressy-home/edge-images/issues
 ARG HOME_URL=https://github.com/jtcressy-home/edge-images
 ARG OS_ID="edgenode"
-ARG OS_NAME="edgenode-ubuntu"
+ARG OS_NAME="edgenode-alpine-rpi"
 ARG OS_REPO=ghcr.io/jtcressy-home/edgenode-${FLAVOR}
 ARG OS_VERSION=${FRAMEWORK_IMAGE_TAG}
 ARG OS_LABEL=latest
 RUN envsubst >/etc/os-release </usr/lib/os-release.tmpl
 
 # Needed for rpi
-RUN ln -sf Image /boot/vmlinuz
+RUN apk --no-cache add linux-rpi linux-rpi4 && ln -sf Image /boot/vmlinuz
 
 RUN apk --no-cache add libqrencode dmidecode
 
