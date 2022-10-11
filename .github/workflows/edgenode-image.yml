@@ -321,7 +321,7 @@ jobs:
           id
           sudo id
           mkdir -p elemental-toolkit/build
-          sudo (cd elemental-toolkit && ./images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} build/$IMAGE_NAME && mv build ../)
+          (cd elemental-toolkit && sudo ./images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} build/$IMAGE_NAME && mv build ../)
           xz -v build/$IMAGE_NAME
 
       - name: Export Artifact
