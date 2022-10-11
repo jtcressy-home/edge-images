@@ -332,7 +332,7 @@ jobs:
           DEFAULT_ACTIVE_SIZE: "2000"
         run: |
           sudo apt install -y gdisk kpartx
-          sudo ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME
+          (cd elemental-toolkit && sudo images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME && mv $IMAGE_NAME ../)
         # with:
         #   entrypoint: /bin/bash
         #   args: -c "zypper in -y jq docker git curl gptfdisk kpartx sudo && sudo cp ./luet /usr/bin/luet && git config --global --add safe.directory '*' && sudo ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME"
