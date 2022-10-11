@@ -309,6 +309,12 @@ jobs:
         run: |
           docker pull ${{ steps.meta.outputs.tags }}
 
+      - name: Download luet
+        run: |
+          id=$(docker create quay.io/luet/base:0.32.4)
+          docker cp $id:/usr/bin/luet ./luet
+          docker rm -v $id
+
       - name: Build RPi Image
         uses: docker://quay.io/costoolkit/elemental-cli:v0.0.15-8a78e6b
         env:
@@ -318,12 +324,9 @@ jobs:
           RECOVERY_SIZE: "4200"
           SIZE: "15200"
           DEFAULT_ACTIVE_SIZE: "2000"
-        # run: |
-        #   zypper in -y jq docker git curl gptfdisk kpartx sudo
-        #   ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME
         with:
           entrypoint: /bin/bash
-          args: -c "zypper in -y jq docker git curl gptfdisk kpartx sudo && ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME"
+          args: -c "sudo cp ./luet /usr/bin/luet && zypper in -y jq docker git curl gptfdisk kpartx sudo && git config --global --add safe.directory /github/workspace && ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME"
 
       - name: packaging
         env:
