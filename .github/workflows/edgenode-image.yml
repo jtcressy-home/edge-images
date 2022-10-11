@@ -331,7 +331,7 @@ jobs:
           SIZE: "15200"
           DEFAULT_ACTIVE_SIZE: "2000"
         run: |
-          sudo apt install -y gptfdisk kpartx
+          sudo apt install -y gdisk kpartx
           sudo ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME"
         # with:
         #   entrypoint: /bin/bash
