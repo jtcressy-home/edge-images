@@ -338,7 +338,7 @@ jobs:
         env:
           IMAGE_NAME: edgenode-${{ matrix.flavor }}-${{ matrix.arch }}.img
         run: |
-          xz -v build/$IMAGE_NAME
+          sudo xz -v build/$IMAGE_NAME
 
       - name: Export Artifact
         uses: actions/upload-artifact@v3
