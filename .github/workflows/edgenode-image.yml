@@ -318,9 +318,12 @@ jobs:
           RECOVERY_SIZE: "4200"
           SIZE: "15200"
           DEFAULT_ACTIVE_SIZE: "2000"
-        with:
-          entrypoint: ./elemental-toolkit/images/arm-img-builder.sh
-          args: --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME
+        run: |
+          zypper in -y jq docker git curl gptfdisk kpartx sudo
+          ./elemental-toolkit/images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME
+        # with:
+        #   entrypoint: ./elemental-toolkit/images/arm-img-builder.sh
+        #   args: --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} $IMAGE_NAME
 
       - name: packaging
         env:
