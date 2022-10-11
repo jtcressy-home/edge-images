@@ -318,8 +318,10 @@ jobs:
           SIZE: "15200"
           DEFAULT_ACTIVE_SIZE: "2000"
         run: |
+          id
+          sudo id
           mkdir -p elemental-toolkit/build
-          (cd elemental-toolkit && ./images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} build/$IMAGE_NAME && mv build ../)
+          sudo (cd elemental-toolkit && ./images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} build/$IMAGE_NAME && mv build ../)
           xz -v build/$IMAGE_NAME
 
       - name: Export Artifact
@@ -333,6 +335,7 @@ jobs:
     needs:
     - edgenode-image-build
     - edgenode-image-iso
+    - edgenode-image-rpi
     if: startsWith(github.event.ref, 'refs/tags/v')
     steps:
       - name: Checkout Repository
