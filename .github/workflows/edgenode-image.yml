@@ -303,7 +303,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
-            type=ref
+            type=ref,event=pr
 
       - name: Pull Image
         run: |
