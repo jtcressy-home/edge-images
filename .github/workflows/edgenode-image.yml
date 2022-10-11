@@ -275,7 +275,7 @@ jobs:
 
   edgenode-image-rpi:
     runs-on: ubuntu-latest
-    needs: edgenode-image-build
+    # needs: edgenode-image-build
     strategy:
       fail-fast: false
       matrix:
@@ -303,7 +303,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
-            type=sha
+            type=ref
 
       - name: Pull Image
         run: |
