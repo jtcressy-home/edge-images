@@ -273,6 +273,61 @@ jobs:
           name: edgenode-${{ matrix.flavor }}-${{ matrix.arch }}-iso
           path: "*.iso"
 
+  edgenode-image-rpi:
+    runs-on: ubuntu-latest
+    needs: edgenode-image-build
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor:
+        - alpine-rpi
+        # - ubuntu-rpi
+        arch:
+        - arm64
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Checkout elemental-toolkit
+        uses: actions/checkout@v3
+        with:
+          repository: rancher/elemental-toolkit
+          path: elemental-toolkit
+      
+      - name: Configure Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v2
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
+          tags: |
+            type=sha
+
+      - name: Pull Image
+        run: |
+          docker pull ${{ steps.meta.outputs.tags }}
+
+      - name: Build RPi Image
+        env:
+          MODEL: rpi64
+          IMAGE_NAME: edgenode-${{ matrix.flavor }}-${{ matrix.arch }}.img
+          STATE_SIZE: "6200"
+          RECOVERY_SIZE: "4200"
+          SIZE: "15200"
+          DEFAULT_ACTIVE_SIZE: "2000"
+        run: |
+          mkdir -p elemental-toolkit/build
+          (cd elemental-toolkit && ./images/arm-img-builder.sh --model $MODEL --docker-image ${{ steps.meta.outputs.tags }} build/$IMAGE_NAME && mv build ../)
+          xz -v build/$IMAGE_NAME
+
+      - name: Export Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: edgenode-${{ matrix.flavor }}-${{ matrix.arch }}-img
+          path: "build/*"
+
   edgenode-image-release:
     runs-on: ubuntu-latest
     needs:
