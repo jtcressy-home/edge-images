@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Load OS Metadata
+. /etc/os-release
+
+system_uri=${IMAGE_REPO}:${IMAGE_LABEL}
+
+while [ "$#" -gt 0 ]; do
+  case $1 in
+    --system.uri)
+        shift 1
+        system_uri=$1
+        ;;
+    *)
+        if [ "$#" -gt 2 ]; then
+            elemental upgrade --help
+        fi
+        break
+        ;;
+  esac
+  shift 1
+done
+
+elemental upgrade --system.uri ${IMAGE_REPO}:${IMAGE_LABEL} $@

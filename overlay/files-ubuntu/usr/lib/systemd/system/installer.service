@@ -9,6 +9,6 @@ LimitNOFILE=49152
 ExecStartPre=-/bin/sh -c "dmesg -D"
 TTYPath=/dev/tty1
 RemainAfterExit=yes
-ExecStart=/usr/bin/edgenode-installer.sh
+ExecStart=/usr/bin/edgenode-install
 [Install]
 WantedBy=multi-user.target

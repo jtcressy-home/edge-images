@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Find the first disk in the system
+device="/dev/$(lsblk --json | jq -r '[.blockdevices[] | select(.type == "disk") | .name][0]')"
+
+/usr/bin/elemental install $device && umount -a -l && eject /dev/disk/by-label/COS_LIVE && read -t 15 -p "Remove Installation Media then press any key to reboot (or wait 15 seconds)..." && reboot
