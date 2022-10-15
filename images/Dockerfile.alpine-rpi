@@ -141,7 +141,7 @@ ARG OS_LABEL=latest
 RUN envsubst >/etc/os-release </usr/lib/os-release.tmpl
 
 # Needed for rpi
-RUN apk --no-cache add linux-rpi linux-rpi4 && ln -sf /boot/vmlinuz-rpi4 /boot/vmlinuz
+RUN apk --no-cache add linux-rpi linux-rpi4 && ln -sf Image /boot/vmlinuz
 
 COPY --from=tailscale /usr/local/bin/tailscale /usr/bin/tailscale
 COPY --from=tailscale /usr/local/bin/tailscaled /usr/sbin/tailscaled
