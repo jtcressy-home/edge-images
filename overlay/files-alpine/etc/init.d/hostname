@@ -14,7 +14,7 @@ start() {
                 opts="${mfg}-${serial}"
         elif dmidecode -s system-uuid ; then
                 mfg=$(dmidecode -s system-manufacturer)
-                serial=$(dmidecode -s system-serial-number)
+                serial=$(dmidecode -s system-serial-number | tr -d '\n\r' | tail -c 8)
                 opts=$(echo -n "${mfg}-${serial}" | sed -e 's/[^[:alnum:]]/-/g' | tr -s '-' | tr A-Z a-z)
         elif [ -s /etc/hostname ] ; then
                 opts="-F /etc/hostname"
