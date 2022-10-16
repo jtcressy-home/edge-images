@@ -179,9 +179,7 @@ jobs:
       - name: Inform OS Label (pull request)
         if: github.event_name == 'pull_request'
         run: |
-          pr_num_1=${GITHUB_REF#/refs/pull/}
-          pr_num=${pr_num#/merge}
-          echo "OS_LABEL=pr-${pr_num}" >> $GITHUB_ENV
+          echo "OS_LABEL=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
       
       - name: Inform OS Label (main)
         if: github.event_name != 'pull_request' && github.event_name != 'release' && github.ref == 'refs/heads/main'
