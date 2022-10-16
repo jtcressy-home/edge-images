@@ -152,6 +152,7 @@ jobs:
         id: sha
         uses: docker/metadata-action@v4
         with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=,format=long
 
