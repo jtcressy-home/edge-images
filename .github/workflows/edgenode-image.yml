@@ -148,14 +148,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Framework Image Tag
-        id: framework
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/framework-${{ matrix.flavor }}-${{ matrix.arch }}
-          tags: |
-            type=sha,prefix=,format=long
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -206,7 +198,7 @@ jobs:
           build-args: |
             TARGETOS=${{ matrix.os }}
             TARGETARCH=${{ matrix.arch }}
-            FRAMEWORK_IMAGE=${{ steps.framework.outputs.tags }}
+            FRAMEWORK_IMAGE_TAG=${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
             OS_VERSION=${{ env.OS_VERSION }}
             FLAVOR=${{ matrix.flavor }}
             GITHUB_REPO=${{ github.repository }}
