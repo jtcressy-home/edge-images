@@ -257,7 +257,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v2
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
@@ -329,7 +329,7 @@ jobs:
       
       - name: Configure Docker Metadata
         id: meta
-        uses: docker/metadata-action@v2
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
