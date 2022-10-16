@@ -4,6 +4,14 @@ name: Edgenode Image Pipeline
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
 
 env:
   REGISTRY: ghcr.io
@@ -154,6 +162,27 @@ jobs:
             type=ref,event=pr
             type=sha
 
+      - name: Inform OS Version (release)
+        if: startsWith(github.event.ref, 'refs/tags/v')
+        run: |
+          echo "OS_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "OS_LABEL=latest" >> $GITHUB_ENV
+
+      - name: Inform OS Version (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          pr_num_1=${GITHUB_REF#/refs/pull/}
+          pr_num=${pr_num#/merge}
+          echo "OS_VERSION=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "OS_LABEL=pr-${pr_num}" >> $GITHUB_ENV
+      
+      - name: Inform OS Version (main)
+        if: github.event_name != 'pull_request' && github.event_name != 'release' && github.ref == 'refs/heads/main'
+        run: |
+          echo "OS_VERSION=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "OS_LABEL=main" >> $GITHUB_ENV
+
+
       # TODO: Also sign images with cosign
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
@@ -170,12 +199,13 @@ jobs:
             TARGETOS=${{ matrix.os }}
             TARGETARCH=${{ matrix.arch }}
             FRAMEWORK_IMAGE_TAG=${{ github.sha }}
-            OS_VERSION=${{ github.sha }}
+            OS_VERSION=${{ env.OS_VERSION }}
             FLAVOR=${{ matrix.flavor }}
             GITHUB_REPO=${{ github.repository }}
             BUG_REPORT_URL=${{ github.repositoryUrl }}/issues
             HOME_URL=${{ github.repositoryUrl }}
             OS_REPO=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+            OS_LABEL=${{ env.OS_LABEL }}
 
       - name: Save image tags as artifact
         run: |
