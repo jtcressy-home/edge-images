@@ -148,6 +148,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Calculate long sha for framework image ref
+        id: sha
+        uses: docker/metadata-action@v4
+        with:
+          tags: |
+            type=sha,prefix=,format=long
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -161,27 +168,24 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha
+            type=sha,prefix=,format=long
 
-      - name: Inform OS Version (release)
+      - name: Inform OS Label (release)
         if: startsWith(github.event.ref, 'refs/tags/v')
         run: |
-          echo "OS_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
           echo "OS_LABEL=latest" >> $GITHUB_ENV
 
-      - name: Inform OS Version (pull request)
+      - name: Inform OS Label (pull request)
         if: github.event_name == 'pull_request'
         run: |
           pr_num_1=${GITHUB_REF#/refs/pull/}
           pr_num=${pr_num#/merge}
-          echo "OS_VERSION=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "OS_LABEL=pr-${pr_num}" >> $GITHUB_ENV
       
-      - name: Inform OS Version (main)
+      - name: Inform OS Label (main)
         if: github.event_name != 'pull_request' && github.event_name != 'release' && github.ref == 'refs/heads/main'
         run: |
-          echo "OS_VERSION=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "OS_LABEL=main" >> $GITHUB_ENV
-
 
       # TODO: Also sign images with cosign
       - name: Build and push Docker image
@@ -198,8 +202,8 @@ jobs:
           build-args: |
             TARGETOS=${{ matrix.os }}
             TARGETARCH=${{ matrix.arch }}
-            FRAMEWORK_IMAGE_TAG=${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-            OS_VERSION=${{ env.OS_VERSION }}
+            FRAMEWORK_IMAGE_TAG=${{ steps.sha.outputs.version }}
+            OS_VERSION=${{ steps.meta.outputs.version }}
             FLAVOR=${{ matrix.flavor }}
             GITHUB_REPO=${{ github.repository }}
             BUG_REPORT_URL=${{ github.repositoryUrl }}/issues
@@ -256,13 +260,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
-            type=sha
+            type=sha,prefix=,format=long
       
       - name: Pull Image
         run: |
           docker pull ${{ steps.meta.outputs.tags }}
-          docker pull quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
-          docker pull quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-livecd-0.0.3-2
 
       - name: Configure ISO manifest
         run: |
@@ -277,12 +279,9 @@ jobs:
             - docker:${{ steps.meta.outputs.tags }}
             # Packages to be installed in the uefi image
             uefi:
-            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
             - channel:live/grub2-efi-image
             # Packages to be installed in the iso image
             image:
-            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-efi-image-livecd-0.0.2-3
-            # - docker:quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}:grub2-livecd-0.0.3-2
             - channel:live/grub2-efi-image
             - channel:live/grub2
             - dir:/cOS/overlay/files-iso
@@ -333,7 +332,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/edgenode-${{ matrix.flavor }}-${{ matrix.arch }}
           tags: |
-            type=sha
+            type=sha,prefix=,format=long
 
       - name: Pull Image
         run: |
