@@ -172,7 +172,7 @@ jobs:
             type=sha,prefix=,format=long
 
       - name: Inform OS Label (release)
-        if: startsWith(github.event.ref, 'refs/tags/v')
+        if: github.event_name == 'release'
         run: |
           echo "OS_LABEL=latest" >> $GITHUB_ENV
 
@@ -380,7 +380,7 @@ jobs:
     - edgenode-image-build
     - edgenode-image-iso
     - edgenode-image-rpi
-    if: startsWith(github.event.ref, 'refs/tags/v')
+    if: github.event_name == 'release'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
