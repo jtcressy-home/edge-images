@@ -24,7 +24,7 @@ jobs:
       matrix:
         flavor:
         - alpine
-        - ubuntu
+        # - ubuntu
         os:
         - linux
         arch:
@@ -104,8 +104,8 @@ jobs:
         flavor:
         - alpine
         - alpine-rpi
-        - ubuntu
-        - ubuntu-rpi
+        # - ubuntu
+        # - ubuntu-rpi
         os:
         - linux
         arch:
@@ -230,7 +230,7 @@ jobs:
       matrix:
         flavor:
         - alpine
-        - ubuntu
+        # - ubuntu
         arch:
         - amd64
         - arm64
