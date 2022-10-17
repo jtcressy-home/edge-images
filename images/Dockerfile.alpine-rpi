@@ -149,3 +149,14 @@ COPY --from=tailscale /usr/local/bin/tailscaled /usr/sbin/tailscaled
 RUN rc-update add tailscaled boot && \
     rc-update add hostname boot && \
     rc-update add tailscale-up default
+
+### K3S Installation Section
+
+ARG INSTALL_K3S_VERSION
+ARG INSTALL_K3S_BIN_DIR="/usr/bin"
+RUN curl -sfL https://get.k3s.io > installer.sh \
+    && INSTALL_K3S_SKIP_START="true" INSTALL_K3S_SKIP_ENABLE="true" bash installer.sh \
+    && INSTALL_K3S_SKIP_START="true" INSTALL_K3S_SKIP_ENABLE="true" bash installer.sh agent \
+    && rm -rf installer.sh
+RUN luet install -y utils/k9s utils/nerdctl container/kubectl && luet cleanup
+RUN rm -rf /etc/rancher/k3s/k3s.env /etc/rancher/k3s/k3s-agent.env && touch /etc/rancher/k3s/.keep
