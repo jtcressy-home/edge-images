@@ -7,8 +7,8 @@ services:
       dockerfile: Dockerfile
       network: host
       args:
-        variant: jammy
-        tailscale_version: v1.32.0
+        VARIANT: jammy
+        TAILSCALE_VERSION: v1.32.0
     privileged: true
     volumes:
       - /dev:/dev
