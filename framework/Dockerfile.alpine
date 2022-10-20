@@ -6,6 +6,8 @@ RUN apk add git make && \
     git clone --depth 1 --branch=v1.9.4 https://github.com/coredns/coredns /go/src/coredns && cd plugin && \
     git clone --depth 1 --branch=v0.1.0 https://github.com/damomurf/coredns-tailscale /go/src/coredns/plugin/tailscale
 
+ARG CGO_ENABLED=0
+
 RUN cd plugin && \
     rm tailscale/go.mod tailscale/go.sum && \
     sed -i s/forward:forward/tailscale:tailscale\\nforward:forward/ /go/src/coredns/plugin.cfg && \
