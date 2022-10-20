@@ -41,9 +41,8 @@ RUN /usr/bin/luet install -y --system-target /framework \
 RUN /usr/bin/luet install -y --system-target /framework system/grub2-efi-image system/grub2-artifacts
 
 RUN /usr/bin/luet cleanup --system-target /framework
-RUN mkdir -p /framework/usr/local/bin/
 COPY overlay/files /framework
-COPY --from=coredns /go/src/coredns/coredns /framework/usr/local/bin/
+COPY --from=coredns /go/src/coredns/coredns /framework/usr/bin/coredns
 RUN rm -rf /framework/var/luet
 RUN rm -rf /framework/var/cache
 
