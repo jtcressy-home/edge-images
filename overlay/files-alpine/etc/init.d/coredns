@@ -7,7 +7,7 @@ cfgfile="/etc/$RC_SVCNAME/Corefile"
 
 command="/usr/bin/coredns"
 command_args="-quiet -conf=$cfgfile"
-command_user="nobody"
+command_user="root"
 command_background="yes"
 
 depend() {
