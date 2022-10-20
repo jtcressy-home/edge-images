@@ -1,9 +1,11 @@
 #!/bin/sh
 echo "--reset"
 echo "--ssh"
-if (netstat -tnap | grep -v ":53")
+if !(netstat -tnap | grep ":53" > /dev/null)
 then
   echo "--accept-dns"
+else
+  echo "--accept-dns=false"
 fi
 echo "--accept-routes"
 if [ -d /sys/devices/virtual/net/cni0 ];

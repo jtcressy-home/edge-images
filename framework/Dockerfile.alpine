@@ -1,21 +1,4 @@
-FROM golang:1.19-alpine AS coredns
-
-WORKDIR /go/src/coredns
-
-RUN apk add git make && \
-    git clone --depth 1 --branch=v1.9.4 https://github.com/coredns/coredns /go/src/coredns && cd plugin && \
-    git clone --depth 1 --branch=v0.1.0 https://github.com/damomurf/coredns-tailscale /go/src/coredns/plugin/tailscale
-
-ARG CGO_ENABLED=0
-
-RUN cd plugin && \
-    rm tailscale/go.mod tailscale/go.sum && \
-    sed -i s/forward:forward/tailscale:tailscale\\nforward:forward/ /go/src/coredns/plugin.cfg && \
-    cat /go/src/coredns/plugin.cfg && \
-    cd .. && \
-    make check && \
-    go build
-
+FROM ghcr.io/jtcressy-home/coredns-tailscale:latest AS coredns
 
 FROM alpine as builder
 
@@ -44,7 +27,7 @@ RUN /usr/bin/luet install -y --system-target /framework system/grub2-efi-image s
 
 RUN /usr/bin/luet cleanup --system-target /framework
 COPY overlay/files /framework
-COPY --from=coredns /go/src/coredns/coredns /framework/usr/bin/coredns
+COPY --from=coredns /coredns /framework/usr/bin/coredns
 RUN rm -rf /framework/var/luet
 RUN rm -rf /framework/var/cache
 
