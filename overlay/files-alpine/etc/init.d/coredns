@@ -1,0 +1,20 @@
+#!/sbin/openrc-run
+
+description="the Coredns DNS server"
+
+pidfile="/run/$RC_SVCNAME.pid"
+cfgfile="/etc/$RC_SVCNAME/Corefile"
+
+command="/usr/local/bin/coredns"
+command_args="-quiet -conf=$cfgfile"
+command_user="nobody"
+command_background="yes"
+
+depend() {
+  need net localmount
+  after firewall
+}
+
+start_pre() {
+  checkpath --file $cfgfile
+}

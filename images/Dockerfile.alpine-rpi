@@ -149,7 +149,8 @@ COPY --from=tailscale /usr/local/bin/tailscaled /usr/sbin/tailscaled
 
 RUN rc-update add tailscaled boot && \
     rc-update add hostname boot && \
-    rc-update add tailscale-up default
+    rc-update add tailscale-up default && \
+    rc-update add coredns boot
 
 ### K3S Installation Section
 

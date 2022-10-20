@@ -1,0 +1,11 @@
+tailscale.internal:53 {
+  tailscale tailscale.internal
+  log
+  errors
+}
+
+.:53 {
+  forward . 100.100.100.100
+  log
+  errors
+}
