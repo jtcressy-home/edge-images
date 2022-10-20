@@ -105,7 +105,8 @@ RUN apk --no-cache add  \
       open-vm-tools-vmbackup \
       openntpd \
       dmidecode \
-      libqrencode
+      libqrencode \
+      linux-firmware-cypress
 
 
 RUN mkdir -p /etc/runlevels/default && \
