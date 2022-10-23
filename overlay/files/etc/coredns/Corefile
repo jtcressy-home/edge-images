@@ -2,6 +2,7 @@ tailscale.internal:53 {
   errors
   log
   tailscale tailscale.internal
+  loadbalance
 }
 
 .:53 {
