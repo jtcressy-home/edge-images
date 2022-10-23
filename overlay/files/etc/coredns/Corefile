@@ -1,11 +1,15 @@
 tailscale.internal:53 {
-  tailscale tailscale.internal
-  log
   errors
+  log
+  tailscale tailscale.internal
 }
 
 .:53 {
-  forward . 100.100.100.100
-  log
   errors
+  log
+  health
+  forward ts.net 100.100.100.100
+  forward tailscale.net 100.100.100.100
+  forward . /var/run/connman/resolv.conf
+  cache 30
 }
