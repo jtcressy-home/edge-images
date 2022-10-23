@@ -118,6 +118,7 @@ RUN mkdir -p /etc/runlevels/default && \
 
 RUN rc-update add sshd boot && \
     rc-update add connman boot  && \
+    rc-update add connman-resolvconf boot && \
     rc-update add acpid boot && \
     rc-update add hwclock boot && \
     rc-update add syslog boot && \
