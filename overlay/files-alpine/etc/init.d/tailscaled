@@ -16,7 +16,7 @@ start_pre() {
 }
 
 command="/usr/sbin/tailscaled"
-command_args="--state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock"
+command_args="--state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock >> /var/log/tailscaled.log 2>&1"
 
 stop_post() {
     /usr/sbin/tailscaled --cleanup

@@ -1,0 +1,10 @@
+write-kubeconfig-mode: "0644"
+kube-apiserver-config:
+- oidc-client-id=kubernetes
+- oidc-issuer-url=https://login.tailscale.com
+- oidc-username-claim=sub
+- oidc-groups-claim=tags
+flannel-iface: tailscale0
+flannel-backend: host-gw
+tls-san:
+- kubernetes.tailscale.internal

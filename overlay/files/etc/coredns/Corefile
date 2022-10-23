@@ -1,7 +1,9 @@
 tailscale.internal:53 {
   errors
   log
-  tailscale tailscale.internal
+  tailscale tailscale.internal {
+    poll_interval 15s
+  }
   loadbalance
 }
 

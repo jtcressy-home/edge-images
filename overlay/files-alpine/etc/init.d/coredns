@@ -6,12 +6,12 @@ pidfile="/run/$RC_SVCNAME.pid"
 cfgfile="/etc/$RC_SVCNAME/Corefile"
 
 command="/usr/bin/coredns"
-command_args="-quiet -conf=$cfgfile"
+command_args="-conf=$cfgfile >> /var/log/coredns.log 2>&1"
 command_user="root"
 command_background="yes"
 
 depend() {
-  need net localmount
+  need net localmount tailscaled
   after firewall
 }
 

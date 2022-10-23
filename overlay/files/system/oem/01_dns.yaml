@@ -1,7 +1,0 @@
-name: "DNS Wrangling"
-stages:
-  network.before:
-    - commands:
-      - mkdir -p /var/run/connman
-      - touch /var/run/conman/.keep
-      - resolvconf -u
