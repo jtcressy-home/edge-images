@@ -1,3 +1,4 @@
+container-runtime-endpoint: unix:///run/containerd/containerd.sock
 write-kubeconfig-mode: "0644"
 kube-apiserver-config:
 - oidc-client-id=kubernetes
@@ -8,3 +9,4 @@ flannel-iface: tailscale0
 flannel-backend: host-gw
 tls-san:
 - kubernetes.tailscale.internal
+server: kubernetes.tailscale.internal

@@ -108,7 +108,8 @@ RUN apk --no-cache add  \
       dmidecode \
       libqrencode \
       bind-tools \
-      linux-firmware-cypress
+      linux-firmware-cypress \
+      containerd containerd-openrc
 
 
 RUN mkdir -p /etc/runlevels/default && \
@@ -126,7 +127,8 @@ RUN rc-update add sshd boot && \
     rc-update add udev-trigger sysinit && \
     rc-update add openntpd boot && \
     rc-update add crond && \
-    rc-update add fail2ban
+    rc-update add fail2ban && \
+    rc-update add containerd boot
     
 # Symlinks to make elemental installer work
 RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install && \

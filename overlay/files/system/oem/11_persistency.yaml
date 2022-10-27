@@ -28,6 +28,7 @@ stages:
           /var/lib/longhorn
           /var/lib/cni
           /var/lib/tailscale
+          /var/lib/containerd
         PERSISTENT_STATE_BIND: "true"
     - if: |
         cat /proc/cmdline | grep -q "kairos.boot_live_mode"
@@ -56,6 +57,7 @@ stages:
           /var/lib/longhorn
           /var/lib/cni
           /var/lib/tailscale
+          /var/lib/containerd
         PERSISTENT_STATE_BIND: "true"
     - if: '[ ! -f /dev/disk/by-label/COS_OEM ]'
       name: "Redirect /oem to COS_GRUB if COS_OEM does not exist"

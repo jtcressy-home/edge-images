@@ -107,7 +107,8 @@ RUN apk --no-cache add  \
       open-vm-tools-vmbackup \
       bind-tools \
       openntpd \
-      linux-firmware-bnx2
+      linux-firmware-bnx2 \
+      containerd containerd-openrc
 
 RUN if [ "${TARGETARCH}" = "amd64" ]; then apk --no-cache add grub-bios; fi
 
@@ -126,7 +127,8 @@ RUN rc-update add sshd boot && \
     rc-update add udev-trigger sysinit && \
     rc-update add openntpd boot && \
     rc-update add crond && \
-    rc-update add fail2ban
+    rc-update add fail2ban && \
+    rc-update add containerd boot
 
 # Symlinks to make elemental installer work
 RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install && \
