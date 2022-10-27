@@ -7,7 +7,7 @@ cfgfile="/etc/$RC_SVCNAME/Corefile"
 logdir="/var/log/$RC_SVCNAME"
 
 command="/usr/bin/coredns"
-command_args="-conf=$cfgfile -log_dir=$logdir"
+command_args="$command_args -v 10 -conf=$cfgfile -log_dir=$logdir"
 command_user="root"
 command_background="yes"
 
