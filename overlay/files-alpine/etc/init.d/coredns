@@ -4,9 +4,10 @@ description="the Coredns DNS server"
 
 pidfile="/run/$RC_SVCNAME.pid"
 cfgfile="/etc/$RC_SVCNAME/Corefile"
+logdir="/var/log/$RC_SVCNAME"
 
 command="/usr/bin/coredns"
-command_args="-conf=$cfgfile >> /var/log/coredns.log 2>&1"
+command_args="-conf=$cfgfile -log_dir=$logdir"
 command_user="root"
 command_background="yes"
 
@@ -17,4 +18,5 @@ depend() {
 
 start_pre() {
   checkpath --file $cfgfile
+  mkdir -p $logdir
 }

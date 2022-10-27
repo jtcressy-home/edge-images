@@ -14,6 +14,5 @@ tailscale.internal:53 {
   forward ts.net 100.100.100.100
   forward tailscale.net 100.100.100.100
   forward . /var/run/resolvconf/dnsmasq-resolv.conf
-  forward . /var/run/connman/resolv.conf
   cache 30
 }
