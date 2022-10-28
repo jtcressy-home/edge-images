@@ -10,7 +10,8 @@ tailscale.internal:53 {
 .:53 {
   errors
   log
-  health
+  health :8053
+  prometheus localhost:9253
   forward ts.net 100.100.100.100
   forward tailscale.net 100.100.100.100
   forward . /var/run/resolvconf/dnsmasq-resolv.conf
