@@ -10,6 +10,8 @@ command="/usr/bin/coredns"
 command_args="$command_args -v 10 -conf=$cfgfile -log_dir=$logdir"
 command_user="root"
 command_background="yes"
+output_log="$logdir/stdout.log"
+error_log="$logdir/stderr.log"
 
 depend() {
   need net localmount tailscaled
