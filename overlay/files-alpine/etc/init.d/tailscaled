@@ -5,7 +5,7 @@ supervisor=supervise-daemon
 
 # require network before starting
 depend() {
-    need net
+    need net connman-resolvconf
 }
 
 # run tailscale
