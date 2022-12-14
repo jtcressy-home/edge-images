@@ -19,12 +19,9 @@ RUN add-apt-repository ppa:oibaf/test
 RUN apt update
 RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends\
     systemd \
-    grub-pc-bin \
-    grub-efi-amd64-bin \
-    grub2 \
+    grub-efi \
     grub2-common \
     nohang \
-    grub2-common \
     sudo \
     iproute2 \
     squashfs-tools \
@@ -44,7 +41,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends\
     open-vm-tools \
     iproute2 net-tools netplan.io \
     linux-base linux-firmware linux-generic initramfs-tools \
-    linux-image-generic-hwe-22.04 && apt-get clean
+    linux-image-generic-hwe-22.04 snap && apt-get clean
 
 RUN update-initramfs -c -k all
 RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install

@@ -18,7 +18,7 @@ env:
 
 jobs:
   framework-image-build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'buildjet-4vcpu-ubuntu-2204-arm' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
@@ -96,7 +96,7 @@ jobs:
           path: "*-oci.txt"
 
   edgenode-image-build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'buildjet-4vcpu-ubuntu-2204-arm' || 'ubuntu-latest' }}
     needs: framework-image-build
     strategy:
       fail-fast: false
@@ -223,7 +223,7 @@ jobs:
           path: "*-oci.txt"
 
   edgenode-image-iso:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'buildjet-4vcpu-ubuntu-2204-arm' || 'ubuntu-latest' }}
     needs: edgenode-image-build
     strategy:
       fail-fast: false
@@ -302,7 +302,7 @@ jobs:
           path: "*.iso"
 
   edgenode-image-rpi:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'buildjet-4vcpu-ubuntu-2204-arm' || 'ubuntu-latest' }}
     needs: edgenode-image-build
     strategy:
       fail-fast: false
