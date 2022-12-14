@@ -339,13 +339,13 @@ jobs:
 
       - name: Download luet
         run: |
-          id=$(docker create quay.io/luet/base:0.32.4)
+          id=$(docker create --platform=linux/${{ matrix.arch }} quay.io/luet/base:0.32.4)
           sudo docker cp $id:/usr/bin/luet /usr/bin/luet
           docker rm -v $id
 
       - name: Download elemental CLI
         run: |
-          id=$(docker create quay.io/costoolkit/elemental-cli:v0.0.15-8a78e6b)
+          id=$(docker create --platform=linux/${{ matrix.arch }} quay.io/costoolkit/elemental-cli:v0.0.15-8a78e6b)
           sudo docker cp $id:/usr/bin/elemental /usr/bin/elemental
           docker rm -v $id
 
