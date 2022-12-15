@@ -278,16 +278,16 @@ jobs:
             - docker:${{ steps.meta.outputs.tags }}
             # Packages to be installed in the uefi image
             uefi:
-            - channel:live/grub2-efi-image
+            - channel:livecd/grub2-efi-image
             # Packages to be installed in the iso image
             image:
-            - channel:live/grub2-efi-image
-            - channel:live/grub2
+            - channel:livecd/grub2-efi-image
+            - channel:livecd/grub2
             - dir:/cOS/overlay/files-iso
             label: "COS_LIVE"
             
           repositories:
-            - uri: quay.io/costoolkit/releases-teal${{ (matrix.arch == 'arm64') && '-arm64' || '' }}
+            - uri: quay.io/kairos/packages${{ (matrix.arch == 'arm64') && '-arm64' || '' }}
               arch: ${{ (matrix.arch == 'amd64') && 'x86_64' || matrix.arch }}
           EOF
 
