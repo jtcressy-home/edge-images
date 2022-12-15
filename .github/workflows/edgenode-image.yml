@@ -223,7 +223,7 @@ jobs:
           path: "*-oci.txt"
 
   edgenode-image-iso:
-    runs-on: ${{ matrix.arch == 'arm64' && 'buildjet-4vcpu-ubuntu-2204-arm' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'buildjet-8vcpu-ubuntu-2204-arm' || 'ubuntu-latest' }}
     needs: edgenode-image-build
     strategy:
       fail-fast: false
