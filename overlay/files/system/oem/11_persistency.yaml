@@ -11,7 +11,6 @@ stages:
         PERSISTENT_STATE_PATHS: >-
           /etc/systemd
           /etc/modprobe.d
-          /etc/rancher
           /etc/sysconfig
           /etc/runlevels
           /etc/ssh
@@ -22,13 +21,11 @@ stages:
           /root
           /usr/libexec
           /var/log
-          /var/lib/rancher
           /var/lib/kubelet
-          /var/lib/wicked
-          /var/lib/longhorn
           /var/lib/cni
           /var/lib/tailscale
-          /var/lib/containerd
+          /var/lib/snapd
+          /var/snap
         PERSISTENT_STATE_BIND: "true"
     - if: |
         cat /proc/cmdline | grep -q "kairos.boot_live_mode"
@@ -40,7 +37,7 @@ stages:
         RW_PATHS: "/var /etc /srv"
         PERSISTENT_STATE_PATHS: >-
           /etc/systemd
-          /etc/rancher
+          /etc/modprobe.d
           /etc/sysconfig
           /etc/runlevels
           /etc/ssh
@@ -51,13 +48,11 @@ stages:
           /root
           /usr/libexec
           /var/log
-          /var/lib/rancher
           /var/lib/kubelet
-          /var/lib/wicked
-          /var/lib/longhorn
           /var/lib/cni
           /var/lib/tailscale
-          /var/lib/containerd
+          /var/lib/snapd
+          /var/snap
         PERSISTENT_STATE_BIND: "true"
     - if: '[ ! -f /dev/disk/by-label/COS_OEM ]'
       name: "Redirect /oem to COS_GRUB if COS_OEM does not exist"
