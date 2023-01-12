@@ -4,7 +4,7 @@ After=tailscaled.service
 Requires=tailscaled.service
 
 [Service]
-ExecStart=/bin/bash -c "while true; do tailscale up `/etc/tailscale/up-args.sh`; sleep 5; done"
+ExecStart=-/usr/bin/tailscale-login
 Restart=always
 RestartSec=15s
 User=root
