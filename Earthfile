@@ -3,24 +3,23 @@ VERSION 0.6
 IMPORT github.com/kairos-io/kairos
 
 FROM alpine
-ARG IMAGE_REPOSITORY=ghcr.io/jtcressy-home
 ARG ISO_NAME=edgenode
 ARG LUET_VERSION=0.33.0
-ARG OS_ID=edgenode
-ARG REPOSITORIES_FILE=framework-profile.yaml
 ARG KAIROS_VERSION=v1.4.0
-ARG KAIROS_IMAGE=quay.io/kairos/core-ubuntu-22-lts:${KAIROS_VERSION}
 ARG OSBUILDER_IMAGE=quay.io/kairos/osbuilder-tools:v0.3.3
 ARG MICROK8S_CHANNEL=latest
 
-ARG IMAGE=ghcr.io/jtcressy-home/edgenode-microk8s:latest_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
+ARG REGISTRY=ghcr.io
+ARG IMAGE_NAME=jtcressy-home/edge-images
+ARG IMAGE=${REGISTRY}/${IMAGE_NAME}:latest_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
 
-ARG BASE_IMAGE_NAME=$(echo $IMAGE | grep -o [^/]*: | rev | cut -c2- | rev)
-ARG BASE_IMAGE_TAG=$(echo $IMAGE | grep -o :.* | cut -c2-)
+ARG BASE_IMAGE=quay.io/kairos/core-ubuntu-22-lts:${KAIROS_VERSION}
+ARG BASE_IMAGE_NAME=$(echo $BASE_IMAGE | grep -o [^/]*: | rev | cut -c2- | rev)
+ARG BASE_IMAGE_TAG=$(echo $BASE_IMAGE | grep -o :.* | cut -c2-)
 
 all:
-  BUILD +docker --platform=linux/amd64
-  BUILD +docker --platform=linux/arm64
+  BUILD --platform=linux/amd64 +docker
+  BUILD --platform=linux/arm64 +docker
   BUILD +iso
 
 
@@ -41,7 +40,7 @@ docker:
   DO +VERSION
   ARG VERSION=$(cat VERSION)
 
-  FROM $KAIROS_IMAGE
+  FROM $BASE_IMAGE
   RUN apt-get update && apt-get autoclean && DEBIAN_FRONTENT=noninteractive apt-get install iptables-persistent jq qrencode dmidecode console-data -y
   RUN snap download microk8s --channel=$MICROK8S_CHANNEL --target-directory /opt/microk8s/snaps --basename microk8s
   RUN snap download core --target-directory /opt/microk8s/snaps --basename core
@@ -63,16 +62,16 @@ docker:
   RUN systemctl enable tailscale-logind.service
   RUN systemctl enable tailscaled.service
 
-  ENV OS_ID=${BASE_IMAGE_NAME}
+  ENV OS_ID=edgenode
   ENV OS_VERSION=${VERSION}_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
   ENV OS_NAME=$OS_ID:${OS_VERSION}
-  ENV OS_REPO=${IMAGE_REPOSITORY}/${BASE_IMAGE_NAME}
+  ENV OS_REPO=${$REGISTRY}/${IMAGE_NAME}
   ENV OS_LABEL=${OS_VERSION}
   DO kairos+OSRELEASE --HOME_URL=https://github.com/jtcressy-home/edge-images --BUG_REPORT_URL=https://github.com/jtcressy-home/edge-images/issues --GITHUB_REPO=jtcressy-home/edge-images --VARIANT=${VARIANT} --FLAVOR=${FLAVOR} --OS_ID=${OS_ID} --OS_LABEL=${OS_LABEL} --OS_NAME=${OS_NAME} --OS_REPO=${OS_REPO} --OS_VERSION=${OS_VERSION}
 
   SAVE IMAGE $IMAGE
-  SAVE IMAGE --push $IMAGE_REPOSITORY/${BASE_IMAGE_NAME}:latest_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
-  SAVE IMAGE --push $IMAGE_REPOSITORY/${BASE_IMAGE_NAME}:${VERSION}_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
+  SAVE IMAGE --push ${REGISTRY}/${IMAGE_NAME}:latest_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
+  SAVE IMAGE --push ${REGISTRY}/${IMAGE_NAME}:${VERSION}_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
 
 docker-rootfs:
   FROM +docker
@@ -84,12 +83,6 @@ kairos:
   WORKDIR /kairos
   RUN git clone https://github.com/kairos-io/kairos /kairos && cd /kairos && git checkout "$KAIROS_VERSION"
   SAVE ARTIFACT /kairos/
-
-get-kairos-scripts:
-  FROM alpine
-  WORKDIR /build
-  COPY +kairos/kairos/ ./
-  SAVE ARTIFACT /build/scripts AS LOCAL scripts
 
 iso:
   ARG OSBUILDER_IMAGE
