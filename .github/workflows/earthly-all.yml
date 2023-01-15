@@ -62,7 +62,7 @@ jobs:
           version: "latest"
       
       - name: Run Earthly
-        run: earthly --ci --push +all
+        run: earthly --push +all
 
       - name: Export build artifacts
         uses: actions/upload-artifact@v3
