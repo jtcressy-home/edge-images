@@ -86,7 +86,6 @@ kairos:
 
 iso:
   ARG OSBUILDER_IMAGE
-  ARG ISO_NAME=${OS_ID}
   ARG IMG=docker:${IMAGE}
   ARG overlay=overlay/files-iso
   FROM $OSBUILDER_IMAGE
@@ -96,17 +95,17 @@ iso:
   RUN mkdir -p overlay/files-iso
   COPY overlay/files-iso/ ./$overlay/
   COPY +docker-rootfs/rootfs /build/image
-  RUN /entrypoint.sh --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build
+  RUN /entrypoint.sh --name $ISO_NAME-amd64 --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build
 
   RUN sha256sum $ISO_NAME.iso > $ISO_NAME.iso.sha256
-  SAVE ARTIFACT /build/$ISO_NAME.iso edgenode.iso AS LOCAL build/$ISO_NAME.iso
-  SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 edgenode.iso.sha256 AS LOCAL build/$ISO_NAME.iso.sha256
+  SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-amd64.iso
+  SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-amd64.iso.sha256
 
 rpi-image:
   ARG OSBUILDER_IMAGE
   FROM $OSBUILDER_IMAGE
   ARG MODEL=rpi64
-  ARG IMAGE_NAME=${BASE_IMAGE_NAME}-microk8s${MICROK8S_CHANNEL}.img
+  ARG IMAGE_NAME=${ISO_NAME}-arm64-rpi.img
   WORKDIR /build
   ENV STATE_SIZE="6200"
   ENV RECOVERY_SIZE="4200"
