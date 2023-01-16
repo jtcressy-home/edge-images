@@ -8,13 +8,18 @@ iso:
   # Packages to be installed in the uefi image
   uefi:
   - channel:live/grub2-efi-image
+  - channel:livecd/grub2-efi-image
   # Packages to be installed in the iso image
   image:
   - channel:live/grub2-efi-image
+  - channel:livecd/grub2-efi-image
   - channel:live/grub2
+  - channel:livecd/grub2
   - dir:/build/overlay/files-iso
   label: "COS_LIVE"
   
 repositories:
-  - uri: quay.io/costoolkit/releases-teal-arm64
+  - uri: quay.io/costoolkit/releases-orange-arm64
+    arch: arm64
+  - uri: quay.io/kairos/packages-arm64
     arch: arm64
