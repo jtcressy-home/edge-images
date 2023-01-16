@@ -106,6 +106,14 @@ iso:
   SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-amd64.iso
   SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-amd64.iso.sha256
 
+grub2-livecd-arm64:
+  FROM quay.io/kairos/packages-arm64:grub2-livecd-0.0.4
+  SAVE ARTIFACT /. grub2
+
+efi-livecd-arm64:
+  FROM quay.io/kairos/packages-arm64:grub2-efi-image-livecd-0.0.4
+  SAVE ARTIFACT /. efi
+
 iso-arm64:
   ARG OSBUILDER_IMAGE
   ARG IMG=docker:${IMAGE}
@@ -117,7 +125,12 @@ iso-arm64:
   RUN mkdir -p overlay/files-iso
   COPY overlay/files-iso/ ./$overlay/
   COPY --platform=linux/arm64 +docker-rootfs/rootfs /build/image
-  COPY iso-manifest-arm64.yaml /config/manifest.yaml
+
+  ### Instead of relying on luet to pull grub2/efi for livecd, forcibly merge into path containing x86_64 versions
+  COPY --platform=linux/arm64 +grub2-livecd-arm64/grub2 /grub2
+  COPY --platform=linux/arm64 +efi-livecd-arm64/efi /efi
+  # COPY iso-manifest-arm64.yaml /config/manifest.yaml
+  
   RUN /entrypoint.sh --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build/
 
   RUN sha256sum $ISO_NAME.iso > $ISO_NAME.iso.sha256
