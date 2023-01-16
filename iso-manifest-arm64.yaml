@@ -4,7 +4,7 @@ debug: true
 iso:
   # Packages to be installed in the rootfs
   rootfs:
-  - docker:${{ steps.meta.outputs.tags }}
+  - dir:/build/image
   # Packages to be installed in the uefi image
   uefi:
   - channel:live/grub2-efi-image
