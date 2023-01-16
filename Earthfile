@@ -102,6 +102,24 @@ iso:
   SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-amd64.iso
   SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-amd64.iso.sha256
 
+iso-arm64:
+  ARG OSBUILDER_IMAGE
+  ARG IMG=docker:${IMAGE}
+  ARG overlay=overlay/files-iso
+  FROM $OSBUILDER_IMAGE
+  RUN zypper in -y jq docker
+  WORKDIR /build
+  COPY . ./
+  RUN mkdir -p overlay/files-iso
+  COPY overlay/files-iso/ ./$overlay/
+  COPY --platform=linux/arm64 +docker-rootfs/rootfs /build/image
+  COPY iso-manifest-arm64.yaml ./manifest.yaml
+  RUN /entrypoint.sh --config-dir=/build/ --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build/
+
+  RUN sha256sum $ISO_NAME.iso > $ISO_NAME.iso.sha256
+  SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-arm64.iso
+  SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-arm64.iso.sha256
+
 rpi-image:
   ARG OSBUILDER_IMAGE
   FROM $OSBUILDER_IMAGE
