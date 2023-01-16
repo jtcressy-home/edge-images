@@ -24,7 +24,7 @@ all:
 
 all-arm:
   BUILD --platform=linux/arm64 +iso-arm64
-  # BUILD --platform=linux/arm64 +rpi-image
+  BUILD --platform=linux/arm64 +rpi-image
 
 
 
@@ -118,7 +118,7 @@ iso-arm64:
   ARG OSBUILDER_IMAGE
   ARG IMG=docker:${IMAGE}
   ARG overlay=overlay/files-iso
-  FROM $OSBUILDER_IMAGE
+  FROM --platform=linux/arm64 $OSBUILDER_IMAGE
   RUN zypper in -y jq docker
   WORKDIR /build
   COPY . ./
@@ -130,7 +130,7 @@ iso-arm64:
   COPY --platform=linux/arm64 +grub2-livecd-arm64/grub2 /grub2
   COPY --platform=linux/arm64 +efi-livecd-arm64/efi /efi
   # COPY iso-manifest-arm64.yaml /config/manifest.yaml
-  
+
   RUN /entrypoint.sh --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build/
 
   RUN sha256sum $ISO_NAME.iso > $ISO_NAME.iso.sha256
@@ -139,7 +139,7 @@ iso-arm64:
 
 rpi-image:
   ARG OSBUILDER_IMAGE
-  FROM $OSBUILDER_IMAGE
+  FROM --platform=linux/arm64 $OSBUILDER_IMAGE
   ARG MODEL=rpi64
   ARG IMG_NAME=${ISO_NAME}-arm64-rpi.img
   WORKDIR /build
