@@ -23,3 +23,7 @@ repositories:
     arch: arm64
   - uri: quay.io/kairos/packages-arm64
     arch: arm64
+  - uri: quay.io/costoolkit/releases-orange
+    arch: x86_64
+  - uri: quay.io/kairos/packages
+    arch: x86_64

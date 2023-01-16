@@ -24,7 +24,7 @@ all:
 
 all-arm:
   BUILD --platform=linux/arm64 +iso-arm64
-  BUILD --platform=linux/arm64 +rpi-image
+  # BUILD --platform=linux/arm64 +rpi-image
 
 
 
