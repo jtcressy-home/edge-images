@@ -21,6 +21,7 @@ all:
   BUILD --platform=linux/amd64 +docker
   BUILD --platform=linux/arm64 +docker
   BUILD +iso
+  BUILD +rpi-image
 
 
 VERSION:
