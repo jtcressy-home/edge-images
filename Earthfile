@@ -19,10 +19,10 @@ ARG BASE_IMAGE_TAG=$(echo $BASE_IMAGE | grep -o :.* | cut -c2-)
 
 all:
   BUILD --platform=linux/amd64 +docker
-  BUILD --platform=linux/arm64 +docker
   BUILD +iso
 
 all-arm:
+  BUILD --platform=linux/arm64 +docker
   BUILD --platform=linux/arm64 +iso-arm64
   BUILD --platform=linux/arm64 +rpi-image
 
