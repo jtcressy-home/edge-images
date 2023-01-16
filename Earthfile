@@ -95,7 +95,7 @@ iso:
   RUN mkdir -p overlay/files-iso
   COPY overlay/files-iso/ ./$overlay/
   COPY +docker-rootfs/rootfs /build/image
-  RUN /entrypoint.sh --name $ISO_NAME-amd64 --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build
+  RUN /entrypoint.sh --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build
 
   RUN sha256sum $ISO_NAME.iso > $ISO_NAME.iso.sha256
   SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-amd64.iso
