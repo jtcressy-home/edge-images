@@ -133,7 +133,7 @@ rpi-image:
   ENV STATE_SIZE="6200"
   ENV RECOVERY_SIZE="4200"
   ENV SIZE="15200"
-  ENV DEFAULT_ACTIVE_SIZE="2000"
+  ENV DEFAULT_ACTIVE_SIZE="4000"
   COPY --platform=linux/arm64 +docker-rootfs/rootfs /build/image
 
   WITH DOCKER --allow-privileged
