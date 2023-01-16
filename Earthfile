@@ -106,12 +106,15 @@ iso:
   SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-amd64.iso
   SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-amd64.iso.sha256
 
-grub2-livecd-arm64:
-  FROM quay.io/kairos/packages-arm64:grub2-livecd-0.0.4
-  SAVE ARTIFACT /. grub2
+boot-livecd-arm64:
+  # TODO: kairos needs to actually build arm64 artifacts into the livecd images
+  #        the kairos packages are actually completely blank and unusable
 
-efi-livecd-arm64:
-  FROM quay.io/kairos/packages-arm64:grub2-efi-image-livecd-0.0.4
+  # FROM --platform=linux/arm64 quay.io/kairos/packages-arm64:grub2-livecd-0.0.4
+  FROM --platform=linux/arm64 quay.io/costoolkit/releases-teal-arm64:grub2-live-0.0.4-2
+  SAVE ARTIFACT /. grub2
+  # FROM --platform=linux/arm64 quay.io/kairos/packages-arm64:grub2-efi-image-livecd-0.0.4
+  FROM --platform=linux/arm64 quay.io/costoolkit/releases-teal-arm64:grub2-efi-image-live-0.0.4-2
   SAVE ARTIFACT /. efi
 
 iso-arm64:
@@ -126,9 +129,9 @@ iso-arm64:
   COPY overlay/files-iso/ ./$overlay/
   COPY --platform=linux/arm64 +docker-rootfs/rootfs /build/image
 
-  ### Instead of relying on luet to pull grub2/efi for livecd, forcibly merge into path containing x86_64 versions
-  COPY --platform=linux/arm64 +grub2-livecd-arm64/grub2 /grub2
-  COPY --platform=linux/arm64 +efi-livecd-arm64/efi /efi
+  ### Instead of relying on luet to pull grub2/efi for livecd, forcibly merge into path containing existing x86_64 versions
+  COPY --platform=linux/arm64 +boot-livecd-arm64/grub2 /grub2
+  COPY --platform=linux/arm64 +boot-livecd-arm64/efi /efi
   # COPY iso-manifest-arm64.yaml /config/manifest.yaml
 
   RUN /entrypoint.sh --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build/
