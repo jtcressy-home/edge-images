@@ -128,7 +128,7 @@ rpi-image:
   ARG OSBUILDER_IMAGE
   FROM $OSBUILDER_IMAGE
   ARG MODEL=rpi64
-  ARG IMAGE_NAME=${ISO_NAME}-arm64-rpi.img
+  ARG IMG_NAME=${ISO_NAME}-arm64-rpi.img
   WORKDIR /build
   ENV STATE_SIZE="6200"
   ENV RECOVERY_SIZE="4200"
@@ -137,8 +137,8 @@ rpi-image:
   COPY --platform=linux/arm64 +docker-rootfs/rootfs /build/image
 
   WITH DOCKER --allow-privileged
-    RUN /build-arm-image.sh --model $MODEL --directory "/build/image" /build/$IMAGE_NAME
+    RUN /build-arm-image.sh --model $MODEL --directory "/build/image" /build/$IMG_NAME
   END
-  RUN xz -v /build/$IMAGE_NAME
-  SAVE ARTIFACT /build/$IMAGE_NAME.xz img AS LOCAL build/$IMAGE_NAME.xz
-  SAVE ARTIFACT /build/$IMAGE_NAME.sha256 img-sha256 AS LOCAL build/$IMAGE_NAME.sha256
+  RUN xz -v /build/$IMG_NAME
+  SAVE ARTIFACT /build/$IMG_NAME.xz img AS LOCAL build/$IMG_NAME.xz
+  SAVE ARTIFACT /build/$IMG_NAME.sha256 img-sha256 AS LOCAL build/$IMG_NAME.sha256
