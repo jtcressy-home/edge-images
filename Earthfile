@@ -23,7 +23,7 @@ all:
   BUILD +iso
 
 all-arm:
-  BUILD +iso-arm
+  BUILD +iso-arm64
   BUILD +rpi-image
 
 
