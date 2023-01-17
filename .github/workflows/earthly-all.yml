@@ -24,9 +24,11 @@ jobs:
       matrix:
         include:
           - runs-on: buildjet-4vcpu-ubuntu-2204
-            earthly-target: all
+            earthly-target: docker-multiarch
+          - runs-on: buildjet-4vcpu-ubuntu-2204
+            earthly-target: all-amd64
           - runs-on: buildjet-4vcpu-ubuntu-2204-arm
-            earthly-target: all-arm
+            earthly-target: all-arm64
     permissions:
       contents: read
       packages: write

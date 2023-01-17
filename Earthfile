@@ -18,14 +18,20 @@ ARG BASE_IMAGE_NAME=$(echo $BASE_IMAGE | grep -o [^/]*: | rev | cut -c2- | rev)
 ARG BASE_IMAGE_TAG=$(echo $BASE_IMAGE | grep -o :.* | cut -c2-)
 
 all:
-  BUILD --platform=linux/amd64 +docker
-  BUILD +iso
+  BUILD +docker-multiarch
+  BUILD +all-amd64
+  BUILD +all-arm64
 
-all-arm:
-  BUILD --platform=linux/arm64 +docker
+all-amd64:
+  BUILD --platform=linux/amd64 +iso
+
+all-arm64:
   BUILD --platform=linux/arm64 +iso-arm64
   BUILD --platform=linux/arm64 +rpi-image
 
+docker-multiarch:
+  BUILD --platform=linux/amd64 +docker
+  BUILD --platform=linux/arm64 +docker
 
 
 VERSION:
