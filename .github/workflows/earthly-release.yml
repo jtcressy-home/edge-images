@@ -19,8 +19,8 @@ jobs:
         include:
           - runs-on: ubuntu-latest
             earthly-target: all-amd64
-          - runs-on: buildjet-16vcpu-ubuntu-2204-arm
-            earthly-target: all-arm64
+          # - runs-on: buildjet-16vcpu-ubuntu-2204-arm
+          #   earthly-target: all-arm64
     permissions:
       contents: read
       packages: write
