@@ -24,7 +24,7 @@ def rpimfg():
     return "raspberrypi"
 
 def dmiserial():
-    return slugify(subprocess.check_output("dmidecode -s system-serial-number", shell=True).decode("utf-8"))
+    return slugify(subprocess.check_output("dmidecode -s system-serial-number", shell=True).decode("utf-8").replace(" ", ""))
 
 def dmimfg():
     return slugify(subprocess.check_output("dmidecode -s system-manufacturer", shell=True).decode("utf-8"))
@@ -38,7 +38,7 @@ elif os.path.exists("/sys/firmware/fdt"):
 else:
     mfg = "unknown"
     serial = "0"
-
-print(f"setting hostname to {mfg}-{serial}")
-os.system(f"hostnamectl set-hostname {mfg}-{serial}")
+hostname = f"{mfg}-{serial}"[:32]
+print(f"setting hostname to {hostname}")
+os.system(f"hostnamectl set-hostname {hostname}")
 exit(0)

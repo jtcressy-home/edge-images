@@ -38,7 +38,6 @@ RUN apk --no-cache add  \
       rsync \
       bash-completion \
       blkid \
-      busybox-initscripts \
       ca-certificates \
       conntrack-tools \
       coreutils \
