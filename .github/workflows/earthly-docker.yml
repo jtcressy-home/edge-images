@@ -63,21 +63,3 @@ jobs:
       
       - name: Run Earthly
         run: earthly -P --push +${{ matrix.earthly-target }}
-
-      - name: Export build artifacts
-        if: github.event_name != 'release'
-        uses: actions/upload-artifact@v3
-        with:
-          name: edgenode-build-${{ matrix.earthly-target }}
-          path: "build/*"
-      
-      - name: Upload to Release
-        if: github.event_name == 'release'
-        uses: xresloader/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          file: "build/*"
-          overwrite: true
-          release_id: ${{ github.event.databaseId }}
-          tags: true
