@@ -6,7 +6,7 @@ autolabeler:
       - '*.md'
     branch:
       - '/docs{0,1}\/.+/'
-    body:
+    title:
       - '/^misc:/'
       - '/^chore:/'
   - label: 'bug'
@@ -14,13 +14,13 @@ autolabeler:
       - '/fix\/.+/'
     title:
       - '/fix/i'
-    body:
       - '/^fix:/'
   - label: 'enhancement'
     branch:
       - '/feature\/.+/'
     body:
       - '/JIRA-[0-9]{1,4}/'
+    title:
       - '/^feat:/'
 categories:
   - title: '🚀 Features'
