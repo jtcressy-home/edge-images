@@ -1,0 +1,83 @@
+---
+
+name: Earthly Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  earthly:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - runs-on: buildjet-4vcpu-ubuntu-2204
+            earthly-target: docker-multiarch
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Release space from worker
+        run: |
+          sudo rm -rf /usr/local/lib/android # will release about 10 GB if you don't need Android
+          sudo rm -rf /usr/share/dotnet # will release about 20GB if you don't need .NET
+      
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Put back the git branch into git (Earthly uses it for tagging)
+        run: |
+          branch=""
+          if [ -n "$GITHUB_HEAD_REF" ]; then
+            branch="$GITHUB_HEAD_REF"
+          else
+            branch="${GITHUB_REF##*/}"
+          fi
+          git checkout -b "$branch" || true
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Login to the Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - uses: earthly/actions-setup@v1
+        with:
+          version: "latest"
+      
+      - name: Run Earthly
+        run: earthly -P --push +${{ matrix.earthly-target }}
+
+      - name: Export build artifacts
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v3
+        with:
+          name: edgenode-build-${{ matrix.earthly-target }}
+          path: "build/*"
+      
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "build/*"
+          overwrite: true
+          release_id: ${{ github.event.databaseId }}
+          tags: true
