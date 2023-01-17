@@ -1,32 +1,11 @@
 ---
 
-name: Earthly Manual Jobs
+name: Earthly Releases
 
 on:
-  workflow_dispatch:
-    inputs:
-      earthly-target:
-        description: "Build Target in Earthfile"
-        required: true
-        type: string
-      runs-on:
-        required: true
-        description: "Runner Class"
-        default: ubuntu-latest
-        type: choice
-        options:
-        - ubuntu-latest
-        - buildjet-2vcpu-ubuntu-2204
-        - buildjet-4vcpu-ubuntu-2204
-        - buildjet-8vcpu-ubuntu-2204
-        - buildjet-16vcpu-ubuntu-2204
-        - buildjet-32vcpu-ubuntu-2204
-        - buildjet-2vcpu-ubuntu-2204-arm
-        - buildjet-4vcpu-ubuntu-2204-arm
-        - buildjet-8vcpu-ubuntu-2204-arm
-        - buildjet-16vcpu-ubuntu-2204-arm
-        - buildjet-32vcpu-ubuntu-2204-arm
-
+  release:
+    types:
+      - published
 
 env:
   REGISTRY: ghcr.io
@@ -38,8 +17,10 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - runs-on: ${{ github.event.inputs.runs-on }}
-            earthly-target: ${{ github.event.inputs.earthly-target }}
+          - runs-on: ubuntu-latest
+            earthly-target: all-amd64
+          - runs-on: buildjet-16vcpu-ubuntu-2204-arm
+            earthly-target: all-arm64
     permissions:
       contents: read
       packages: write
@@ -80,7 +61,19 @@ jobs:
         run: earthly -P --push +${{ matrix.earthly-target }}
 
       - name: Export build artifacts
+        if: github.event_name != 'release'
         uses: actions/upload-artifact@v3
         with:
           name: edgenode-build-${{ matrix.earthly-target }}
           path: "build/*"
+      
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "build/*"
+          overwrite: true
+          release_id: ${{ github.event.databaseId }}
+          tags: true

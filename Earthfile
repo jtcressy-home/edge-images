@@ -88,6 +88,10 @@ docker-rootfs:
   FROM +docker
   SAVE ARTIFACT /. rootfs
 
+docker-rootfs-arm64:
+  FROM --platform=linux/arm64 +docker
+  SAVE ARTIFACT /. rootfs
+
 kairos:
   FROM alpine
   RUN apk add git
@@ -133,7 +137,7 @@ iso-arm64:
   COPY . ./
   RUN mkdir -p overlay/files-iso
   COPY overlay/files-iso/ ./$overlay/
-  COPY --platform=linux/arm64 +docker-rootfs/rootfs /build/image
+  COPY --platform=linux/arm64 +docker-rootfs-arm64/rootfs /build/image
 
   ### Instead of relying on luet to pull grub2/efi for livecd, forcibly merge into path containing existing x86_64 versions
   COPY --platform=linux/arm64 +boot-livecd-arm64/grub2 /grub2
@@ -156,7 +160,7 @@ rpi-image:
   ENV RECOVERY_SIZE="4200"
   ENV SIZE="15200"
   ENV DEFAULT_ACTIVE_SIZE="4000"
-  COPY --platform=linux/arm64 +docker-rootfs/rootfs /build/image
+  COPY --platform=linux/arm64 +docker-rootfs-arm64/rootfs /build/image
 
   WITH DOCKER --allow-privileged
     RUN /build-arm-image.sh --model $MODEL --directory "/build/image" /build/$IMG_NAME
