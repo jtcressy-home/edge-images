@@ -47,11 +47,68 @@ tailscale:
   SAVE ARTIFACT /usr/local/bin/tailscale tailscale
   SAVE ARTIFACT /usr/local/bin/tailscaled tailscaled
 
+
+kairos:
+  FROM alpine
+  RUN apk add git
+  WORKDIR /kairos
+  RUN git clone https://github.com/kairos-io/kairos /kairos && cd /kairos && git checkout "$KAIROS_VERSION"
+  SAVE ARTIFACT /kairos/
+
 docker:
+  ARG TARGETPLATFORM
+  ARG TARGETARCH
   DO +VERSION
   ARG VERSION=$(cat VERSION)
 
-  FROM $BASE_IMAGE
+  ARG FLAVOR=ubuntu-22-lts
+
+  # This WOULD have worked if the kairos earthfile supported a BASE_IMAGE argument
+  # FROM kairos+docker --FLAVOR=${FLAVOR} --BASE_IMAGE=./images/${FLAVOR}+build-image
+  FROM ./images/ubuntu-22-lts+build-image
+  # Instead we need to cherry pick some things from the target kairos+docker...
+  # /Begin cherrypick from kairos+docker
+  COPY (kairos+framework/framework --FLAVOR=${FLAVOR}) /
+  RUN rm -rf /etc/machine-id && touch /etc/machine-id && chmod 444 /etc/machine-id
+  
+  # IF [ "$FLAVOR" = "ubuntu-22-lts" ]
+  COPY +kairos/kairos/overlay/files-ubuntu/ /
+  # END
+
+  COPY kairos+build-kairos-agent/kairos-agent /usr/bin/kairos-agent
+  
+  # IF [ ! -f /sbin/openrc ]
+  RUN ls -liah /etc/systemd/system
+	RUN systemctl enable cos-setup-rootfs.service && \
+	    systemctl enable cos-setup-initramfs.service && \
+	    systemctl enable cos-setup-reconcile.timer && \
+	    systemctl enable cos-setup-fs.service && \
+	    systemctl enable cos-setup-boot.service && \
+	    systemctl enable cos-setup-network.service
+  # END
+
+  # IF [ "$FLAVOR" = "ubuntu-22-lts" ]
+  RUN kernel=$(ls /boot/vmlinuz-* | head -n1) && \
+            ln -sf "${kernel#/boot/}" /boot/vmlinuz
+  RUN kernel=$(ls /lib/modules | head -n1) && \
+        dracut -f "/boot/initrd-${kernel}" "${kernel}" && \
+        ln -sf "initrd-${kernel}" /boot/initrd
+  RUN kernel=$(ls /lib/modules | head -n1) && depmod -a "${kernel}"
+  # END
+
+  IF [ ! -e "/boot/vmlinuz" ]
+      # If it's an ARM flavor, we want a symlink here from zImage/Image
+      IF [ -e "/boot/Image" ]
+          RUN ln -sf Image /boot/vmlinuz
+      ELSE IF [ -e "/boot/zImage" ]
+          RUN ln -sf zImage /boot/vmlinuz
+      ELSE
+          RUN kernel=$(ls /lib/modules | head -n1) && \
+            ln -sf "${kernel#/boot/}" /boot/vmlinuz
+      END
+  END
+  # /End cherrypick from kairos+docker
+
   RUN apt-get update && apt-get autoclean && DEBIAN_FRONTENT=noninteractive apt-get install iptables-persistent jq qrencode dmidecode console-data -y
   RUN snap download microk8s --channel=$MICROK8S_CHANNEL --target-directory /opt/microk8s/snaps --basename microk8s
   RUN snap download core --target-directory /opt/microk8s/snaps --basename core
@@ -88,6 +145,7 @@ docker-rootfs:
   FROM +docker
   SAVE ARTIFACT /. rootfs
 
+<<<<<<< Updated upstream
 docker-rootfs-arm64:
   FROM --platform=linux/arm64 +docker
   SAVE ARTIFACT /. rootfs
@@ -99,6 +157,8 @@ kairos:
   RUN git clone https://github.com/kairos-io/kairos /kairos && cd /kairos && git checkout "$KAIROS_VERSION"
   SAVE ARTIFACT /kairos/
 
+=======
+>>>>>>> Stashed changes
 iso:
   ARG OSBUILDER_IMAGE
   ARG IMG=docker:${IMAGE}
@@ -168,3 +228,9 @@ rpi-image:
   RUN xz -v /build/$IMG_NAME
   SAVE ARTIFACT /build/$IMG_NAME.xz img AS LOCAL build/$IMG_NAME.xz
   SAVE ARTIFACT /build/$IMG_NAME.sha256 img-sha256 AS LOCAL build/$IMG_NAME.sha256
+
+local-qemu-setup:
+  LOCALLY
+  RUN sudo apt-get update -yqq && sudo apt-get install -yqq qemu-system binfmt-support qemu-user-static
+  RUN docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  RUN docker stop earthly-buildkitd || true
