@@ -17,18 +17,21 @@ build-image:
   RUN apt update
 
   ## Bootloader stuff, platform-specific
-  IF [ "$TARGETARCH" == "amd64" ]
+  RUN echo "TARGET ARCH: ${TARGETARCH}"
+  IF [ "$TARGETARCH" = "amd64" ]
     RUN apt install -y \
       grub-pc-bin \
       grub-efi-amd64-bin \
       grub2 \
       grub2-common \
       && apt-get clean
-  ELSE IF [ "$TARGETARCH" == "arm64" ]
+  ELSE IF [ "$TARGETARCH" = "arm64" ]
     RUN apt install -y \
+      grub-common \
       grub-efi-arm64-bin \
-      grub2-common \
-  ELSE
+      grub-efi-arm64-signed \
+      grub-efi-arm64 \
+      grub2-common
   END
 
   RUN apt install -y \

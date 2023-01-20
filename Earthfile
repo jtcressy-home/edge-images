@@ -55,6 +55,27 @@ kairos:
   RUN git clone https://github.com/kairos-io/kairos /kairos && cd /kairos && git checkout "$KAIROS_VERSION"
   SAVE ARTIFACT /kairos/
 
+system-grub2-amd64:
+  FROM quay.io/kairos/packages:grub2-efi-system-2.06-150401
+  SAVE ARTIFACT /. kairos
+  FROM quay.io/costoolkit/releases-teal:grub2-artifacts-system-0.0.3-15
+  SAVE ARTIFACT /. costoolkit
+# TODO: source the system/grub2* packages from elemental toolkit to see if they solve the arm64 installer's problem
+# error we got in the iso arm64 installer: "did not find efi artifacts under /run/cos/active"
+system-grub2-arm64:
+  FROM quay.io/kairos/packages-arm64:grub2-efi-system-2.06-150401
+  SAVE ARTIFACT /. kairos
+  FROM quay.io/costoolkit/releases-teal-arm64:grub2-artifacts-system-0.0.3-15
+  SAVE ARTIFACT /. costoolkit
+
+inspect:
+  FROM alpine
+  RUN apk add file tree
+  COPY +system-grub2-arm64/kairos /kairos
+  COPY +system-grub2-arm64/costoolkit /costoolkit
+  RUN --no-cache tree /kairos
+  RUN --no-cache tree /costoolkit
+
 docker:
   ARG TARGETPLATFORM
   ARG TARGETARCH
@@ -69,6 +90,9 @@ docker:
   # Instead we need to cherry pick some things from the target kairos+docker...
   # /Begin cherrypick from kairos+docker
   COPY (kairos+framework/framework --FLAVOR=${FLAVOR}) /
+  COPY +system-grub2-${TARGETARCH}/kairos /
+  COPY +system-grub2-${TARGETARCH}/costoolkit /usr/share/efi
+  # COPY +system-grub2-efi-${TARGETARCH}/package /
   RUN rm -rf /etc/machine-id && touch /etc/machine-id && chmod 444 /etc/machine-id
   
   # IF [ "$FLAVOR" = "ubuntu-22-lts" ]
@@ -109,7 +133,11 @@ docker:
   END
   # /End cherrypick from kairos+docker
 
-  RUN apt-get update && apt-get autoclean && DEBIAN_FRONTENT=noninteractive apt-get install iptables-persistent jq qrencode dmidecode console-data -y
+  RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null && \
+      curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+
+  RUN apt-get update && apt-get autoclean && DEBIAN_FRONTENT=noninteractive apt-get install tailscale iptables-persistent jq qrencode dmidecode console-data -y
   RUN snap download microk8s --channel=$MICROK8S_CHANNEL --target-directory /opt/microk8s/snaps --basename microk8s
   RUN snap download core --target-directory /opt/microk8s/snaps --basename core
 
@@ -123,8 +151,8 @@ docker:
   RUN setupcon --save
 
   RUN mkdir -p /opt/tailscale
-  COPY +tailscale/tailscale /usr/bin/tailscale
-  COPY +tailscale/tailscaled /usr/sbin/tailscaled
+  # COPY --platform=${TARGETPLATFORM} +tailscale/tailscale /usr/bin/tailscale
+  # COPY --platform=${TARGETPLATFORM} +tailscale/tailscaled /usr/sbin/tailscaled
 
   RUN systemctl enable set-hostname.service
   RUN systemctl enable tailscale-logind.service
@@ -145,20 +173,10 @@ docker-rootfs:
   FROM +docker
   SAVE ARTIFACT /. rootfs
 
-<<<<<<< Updated upstream
 docker-rootfs-arm64:
   FROM --platform=linux/arm64 +docker
   SAVE ARTIFACT /. rootfs
 
-kairos:
-  FROM alpine
-  RUN apk add git
-  WORKDIR /kairos
-  RUN git clone https://github.com/kairos-io/kairos /kairos && cd /kairos && git checkout "$KAIROS_VERSION"
-  SAVE ARTIFACT /kairos/
-
-=======
->>>>>>> Stashed changes
 iso:
   ARG OSBUILDER_IMAGE
   ARG IMG=docker:${IMAGE}
