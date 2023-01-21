@@ -19,26 +19,24 @@ ARG BASE_IMAGE_TAG=$(echo $BASE_IMAGE | grep -o :.* | cut -c2-)
 
 all:
   BUILD +docker-multiarch
-  BUILD +all-amd64
-  BUILD +all-arm64
+  BUILD +all-iso
+  BUILD +all-rpi
 
-all-amd64:
-  BUILD --platform=linux/amd64 +iso
+all-iso:
+  BUILD --platform=linux/amd64 --platform=linux/arm64 +iso
 
-all-arm64:
-  BUILD --platform=linux/arm64 +iso-arm64
+all-rpi:
   BUILD --platform=linux/arm64 +rpi-image
 
 docker-multiarch:
-  BUILD --platform=linux/amd64 +docker
-  BUILD --platform=linux/arm64 +docker
+  BUILD --platform=linux/amd64 --platform=linux/arm64 +docker
 
 
 VERSION:
   COMMAND
   FROM alpine
   RUN apk add git
-  COPY . ./
+  COPY .git ./
   RUN echo $(git describe --exact-match --tags || echo "v0.0.0-$(git log --oneline -n 1 | cut -d" " -f1)") > VERSION
   SAVE ARTIFACT VERSION VERSION
 
@@ -55,24 +53,28 @@ kairos:
   RUN git clone https://github.com/kairos-io/kairos /kairos && cd /kairos && git checkout "$KAIROS_VERSION"
   SAVE ARTIFACT /kairos/
 
-system-grub2-amd64:
-  FROM quay.io/kairos/packages:grub2-efi-system-2.06-150401
-  SAVE ARTIFACT /. kairos
-  FROM quay.io/costoolkit/releases-teal:grub2-artifacts-system-0.0.3-15
-  SAVE ARTIFACT /. costoolkit
-# TODO: source the system/grub2* packages from elemental toolkit to see if they solve the arm64 installer's problem
-# error we got in the iso arm64 installer: "did not find efi artifacts under /run/cos/active"
-system-grub2-arm64:
-  FROM quay.io/kairos/packages-arm64:grub2-efi-system-2.06-150401
-  SAVE ARTIFACT /. kairos
-  FROM quay.io/costoolkit/releases-teal-arm64:grub2-artifacts-system-0.0.3-15
-  SAVE ARTIFACT /. costoolkit
+system-grub2:
+    # TODO: source the system/grub2* packages from elemental toolkit to see if they solve the arm64 installer's problem
+    # error we got in the iso arm64 installer: "did not find efi artifacts under /run/cos/active"
+  ARG TARGETPLATFORM
+  ARG TARGETARCH
+  IF [ "$TARGETARCH" = "amd64" ]
+    FROM quay.io/kairos/packages:grub2-efi-system-2.06-150401
+    SAVE ARTIFACT /. kairos
+    FROM quay.io/costoolkit/releases-teal:grub2-artifacts-system-0.0.3-15
+    SAVE ARTIFACT /. costoolkit
+  ELSE IF [ "$TARGETARCH" = "arm64" ]
+    FROM quay.io/kairos/packages-arm64:grub2-efi-system-2.06-150401
+    SAVE ARTIFACT /. kairos
+    FROM quay.io/costoolkit/releases-teal-arm64:grub2-artifacts-system-0.0.3-15
+    SAVE ARTIFACT /. costoolkit
+  END
 
 inspect:
   FROM alpine
   RUN apk add file tree
-  COPY +system-grub2-arm64/kairos /kairos
-  COPY +system-grub2-arm64/costoolkit /costoolkit
+  COPY +system-grub2/kairos /kairos
+  COPY +system-grub2/costoolkit /costoolkit
   RUN --no-cache tree /kairos
   RUN --no-cache tree /costoolkit
 
@@ -90,8 +92,8 @@ docker:
   # Instead we need to cherry pick some things from the target kairos+docker...
   # /Begin cherrypick from kairos+docker
   COPY (kairos+framework/framework --FLAVOR=${FLAVOR}) /
-  COPY +system-grub2-${TARGETARCH}/kairos /
-  COPY +system-grub2-${TARGETARCH}/costoolkit /usr/share/efi
+  COPY +system-grub2/kairos /
+  COPY +system-grub2/costoolkit /usr/share/efi
   # COPY +system-grub2-efi-${TARGETARCH}/package /
   RUN rm -rf /etc/machine-id && touch /etc/machine-id && chmod 444 /etc/machine-id
   
@@ -170,63 +172,49 @@ docker:
   SAVE IMAGE --push ${REGISTRY}/${IMAGE_NAME}:${VERSION}_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
 
 docker-rootfs:
-  FROM +docker
+  ARG TARGETPLATFORM
+  FROM --platform=$TARGETPLATFORM +docker
   SAVE ARTIFACT /. rootfs
 
-docker-rootfs-arm64:
-  FROM --platform=linux/arm64 +docker
-  SAVE ARTIFACT /. rootfs
+boot-livecd:
+  ARG TARGETPLATFORM
+  ARG TARGETARCH
+  IF [ "$TARGETARCH" = "amd64" ]
+    FROM quay.io/kairos/packages:grub2-livecd-0.0.4
+    SAVE ARTIFACT /. grub2
+    FROM quay.io/kairos/packages:grub2-efi-image-livecd-0.0.4
+    SAVE ARTIFACT /. efi
+  ELSE IF [ "$TARGETARCH" = "arm64" ]
+    # TODO: kairos needs to actually build arm64 artifacts into the livecd images
+    #        the arm64 kairos packages are actually completely blank and unusable
+    # FROM quay.io/kairos/packages-arm64:grub2-livecd-0.0.4
+    FROM quay.io/costoolkit/releases-teal-arm64:grub2-live-0.0.4-2
+    SAVE ARTIFACT /. grub2
+    # FROM quay.io/kairos/packages-arm64:grub2-efi-image-livecd-0.0.4
+    FROM quay.io/costoolkit/releases-teal-arm64:grub2-efi-image-live-0.0.4-2
+    SAVE ARTIFACT /. efi
+  END
 
 iso:
+  ARG TARGETPLATFORM
+  ARG TARGETARCH
   ARG OSBUILDER_IMAGE
-  ARG IMG=docker:${IMAGE}
   ARG overlay=overlay/files-iso
   FROM $OSBUILDER_IMAGE
   RUN zypper in -y jq docker
   WORKDIR /build
-  COPY . ./
   RUN mkdir -p overlay/files-iso
   COPY overlay/files-iso/ ./$overlay/
   COPY +docker-rootfs/rootfs /build/image
+
+  COPY +boot-livecd/grub2 /grub2
+  COPY +boot-livecd/efi /efi
+
   RUN /entrypoint.sh --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build
 
   RUN sha256sum $ISO_NAME.iso > $ISO_NAME.iso.sha256
-  SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-amd64.iso
-  SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-amd64.iso.sha256
-
-boot-livecd-arm64:
-  # TODO: kairos needs to actually build arm64 artifacts into the livecd images
-  #        the kairos packages are actually completely blank and unusable
-
-  # FROM --platform=linux/arm64 quay.io/kairos/packages-arm64:grub2-livecd-0.0.4
-  FROM --platform=linux/arm64 quay.io/costoolkit/releases-teal-arm64:grub2-live-0.0.4-2
-  SAVE ARTIFACT /. grub2
-  # FROM --platform=linux/arm64 quay.io/kairos/packages-arm64:grub2-efi-image-livecd-0.0.4
-  FROM --platform=linux/arm64 quay.io/costoolkit/releases-teal-arm64:grub2-efi-image-live-0.0.4-2
-  SAVE ARTIFACT /. efi
-
-iso-arm64:
-  ARG OSBUILDER_IMAGE
-  ARG IMG=docker:${IMAGE}
-  ARG overlay=overlay/files-iso
-  FROM --platform=linux/arm64 $OSBUILDER_IMAGE
-  RUN zypper in -y jq docker
-  WORKDIR /build
-  COPY . ./
-  RUN mkdir -p overlay/files-iso
-  COPY overlay/files-iso/ ./$overlay/
-  COPY --platform=linux/arm64 +docker-rootfs-arm64/rootfs /build/image
-
-  ### Instead of relying on luet to pull grub2/efi for livecd, forcibly merge into path containing existing x86_64 versions
-  COPY --platform=linux/arm64 +boot-livecd-arm64/grub2 /grub2
-  COPY --platform=linux/arm64 +boot-livecd-arm64/efi /efi
-  # COPY iso-manifest-arm64.yaml /config/manifest.yaml
-
-  RUN /entrypoint.sh --name $ISO_NAME --debug build-iso --date=false dir:/build/image --overlay-iso /build/${overlay} --output /build/
-
-  RUN sha256sum $ISO_NAME.iso > $ISO_NAME.iso.sha256
-  SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-arm64.iso
-  SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-arm64.iso.sha256
+  SAVE ARTIFACT /build/$ISO_NAME.iso $ISO_NAME.iso AS LOCAL build/$ISO_NAME-$TARGETARCH.iso
+  SAVE ARTIFACT /build/$ISO_NAME.iso.sha256 $ISO_NAME.iso.sha256 AS LOCAL build/$ISO_NAME-$TARGETARCH.iso.sha256
 
 rpi-image:
   ARG OSBUILDER_IMAGE

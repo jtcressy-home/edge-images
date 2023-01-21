@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - runs-on: ubuntu-latest
-            earthly-target: all-amd64
+            earthly-target: all
           # - runs-on: buildjet-16vcpu-ubuntu-2204-arm
           #   earthly-target: all-arm64
     permissions:
