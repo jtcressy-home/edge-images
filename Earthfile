@@ -160,10 +160,10 @@ docker:
   RUN systemctl enable tailscale-logind.service
   RUN systemctl enable tailscaled.service
 
-  ENV OS_ID=edgenode
+  ENV OS_ID=ubuntu
   ENV OS_VERSION=${VERSION}_kairos${KAIROS_VERSION}_microk8sv${MICROK8S_CHANNEL}
   ENV OS_NAME=$OS_ID:${OS_VERSION}
-  ENV OS_REPO=${$REGISTRY}/${IMAGE_NAME}
+  ENV OS_REPO=$REGISTRY/$IMAGE_NAME
   ENV OS_LABEL=${OS_VERSION}
   DO kairos+OSRELEASE --HOME_URL=https://github.com/jtcressy-home/edge-images --BUG_REPORT_URL=https://github.com/jtcressy-home/edge-images/issues --GITHUB_REPO=jtcressy-home/edge-images --VARIANT=${VARIANT} --FLAVOR=${FLAVOR} --OS_ID=${OS_ID} --OS_LABEL=${OS_LABEL} --OS_NAME=${OS_NAME} --OS_REPO=${OS_REPO} --OS_VERSION=${OS_VERSION}
 
