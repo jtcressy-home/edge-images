@@ -40,7 +40,7 @@ build-image:
 
   ## Other platform-specific packages
   IF [ "$TARGETARCH" = "amd64" ]
-    RUN apt install -y --no-recommends \
+    RUN apt install -y --no-install-recommends \
       thermald \
       && apt-get clean
   ELSE IF [ "$TARGETARCH" = "arm64" ]
