@@ -5,7 +5,7 @@ IMPORT github.com/kairos-io/kairos
 FROM alpine
 ARG ISO_NAME=edgenode
 ARG LUET_VERSION=0.33.0
-ARG KAIROS_VERSION=v1.4.0
+ARG KAIROS_VERSION=v1.5.0
 ARG OSBUILDER_IMAGE=quay.io/kairos/osbuilder-tools:v0.5.1
 ARG MICROK8S_CHANNEL=latest
 
