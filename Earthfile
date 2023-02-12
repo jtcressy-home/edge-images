@@ -70,13 +70,23 @@ system-grub2:
     SAVE ARTIFACT /. costoolkit
   END
 
+system-grub2-package:
+  ARG TARGETARCH
+  RUN mkdir /package
+  COPY +system-grub2/kairos /package
+  COPY +system-grub2/costoolkit /package/usr/share/grub2
+  IF [ "$TARGETARCH" = "arm64" ]
+    RUN mkdir -p /package/usr/share/efi/aarch64
+    COPY +system-grub2/costoolkit/aarch64 /package/usr/share/efi/aarch64
+  END
+  SAVE ARTIFACT /package package
+
+
 inspect:
   FROM alpine
   RUN apk add file tree
-  COPY +system-grub2/kairos /kairos
-  COPY +system-grub2/costoolkit /costoolkit
-  RUN --no-cache tree /kairos
-  RUN --no-cache tree /costoolkit
+  COPY +system-grub2-package/package /package
+  RUN --no-cache tree /package
 
 docker:
   ARG TARGETPLATFORM
@@ -92,9 +102,9 @@ docker:
   # Instead we need to cherry pick some things from the target kairos+docker...
   # /Begin cherrypick from kairos+docker
   COPY (kairos+framework/framework --FLAVOR=${FLAVOR}) /
-  COPY +system-grub2/kairos /
-  COPY +system-grub2/costoolkit /usr/share/efi
-  # COPY +system-grub2-efi-${TARGETARCH}/package /
+  
+  COPY +system-grub2-package/package /
+
   RUN rm -rf /etc/machine-id && touch /etc/machine-id && chmod 444 /etc/machine-id
   
   # IF [ "$FLAVOR" = "ubuntu-22-lts" ]
