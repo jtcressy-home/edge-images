@@ -34,8 +34,19 @@ build-image:
       grub-efi-arm64-bin \
       grub-efi-arm64-signed \
       grub-efi-arm64 \
-      grub2-common
+      grub2-common \
+      && apt-get clean
   END
+
+  ## Other platform-specific packages
+  IF [ "$TARGETARCH" = "amd64" ]
+    RUN apt install -y --no-recommends \
+      thermald \
+      && apt-get clean
+  ELSE IF [ "$TARGETARCH" = "arm64" ]
+    RUN echo "nothing for apt to do yet"
+  END
+      
 
   RUN apt install -y \
     binutils \
@@ -101,7 +112,6 @@ build-image:
     systemd \
     systemd-hwe-hwdb \
     systemd-timesyncd \
-    thermald \
     unattended-upgrades \
     xauth \
     xclip \
