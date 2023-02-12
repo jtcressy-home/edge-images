@@ -1,19 +1,16 @@
 repositories:
-  - name: "cos"
+  - &cos
+    name: "cos"
     description: "cOS official"
     type: "docker"
-    arch: amd64
     cached: true
     priority: 1
-    reference: "v0.8.14-22-repository.yaml"
+    arch: "amd64"
+    reference: repository.yaml
+    verify: false
     urls:
       - "quay.io/costoolkit/releases-orange"
-  - name: "cos"
-    description: "cOS official"
-    type: "docker"
+  - <<: *cos
     arch: "arm64"
-    cached: true
-    priority: 1
-    reference: "v0.8.14-22-repository.yaml"
     urls:
       - "quay.io/costoolkit/releases-orange-arm64"
