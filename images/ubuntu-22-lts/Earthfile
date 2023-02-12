@@ -11,22 +11,25 @@ build-image:
   FROM $BASE_IMAGE
   
   ENV DEBIAN_FRONTEND=noninteractive
-  RUN apt update
-  RUN apt install -y software-properties-common
-  RUN add-apt-repository ppa:oibaf/test
-  RUN apt update
+  RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+      gnupg \
+      software-properties-common \
+    && add-apt-repository ppa:oibaf/test \
+    && apt-get update
 
   ## Bootloader stuff, platform-specific
   RUN echo "TARGET ARCH: ${TARGETARCH}"
   IF [ "$TARGETARCH" = "amd64" ]
-    RUN apt install -y \
+    RUN apt install -y --no-install-recommends \
       grub-pc-bin \
       grub-efi-amd64-bin \
+      grub-efi-amd64-signed \
       grub2 \
       grub2-common \
       && apt-get clean
   ELSE IF [ "$TARGETARCH" = "arm64" ]
-    RUN apt install -y \
+    RUN apt install -y --no-install-recommends \
       grub-common \
       grub-efi-arm64-bin \
       grub-efi-arm64-signed \
@@ -35,38 +38,83 @@ build-image:
   END
 
   RUN apt install -y \
-    systemd \
-    nohang \
-    sudo \
-    iproute2 \
-    squashfs-tools \
-    parted dracut \
-    dracut-network dracut-live tar \
-    e2fsprogs \
-    dosfstools \
+    binutils \
+    bzip2 \
+    conntrack \
+    console-data \
+    console-setup \
     coreutils \
-    debianutils \
+    cryptsetup \
     curl \
-    openssh-server \
-    nano \
+    debianutils \
+    dmsetup \
+    dosfstools \
+    dracut \
+    dracut-live \
+    dracut-network \
+    e2fsprogs \
+    efibootmgr \
+    ethtool \
+    firmware-sof-signed \
+    fuse3 \
     gawk \
     haveged \
-    rsync \
-    jq \
-    neovim \
-    open-vm-tools \
-    snapd \
-    conntrack \
+    iproute2 \
     iptables \
-    linux-image-generic-hwe-22.04 && apt-get clean
+    isc-dhcp-common \
+    jq \
+    kbd \
+    libatm1 \
+    libfile-fcntllock-perl \
+    libldap-common \
+    liblocale-gettext-perl \
+    libnss-systemd \
+    libpam-cap \
+    libsasl2-modules \
+    linux-image-generic-hwe-22.04 \
+    lldpd \
+    lvm2 \
+    mdadm \
+    nano \
+    nbd-client \
+    ncurses-term \
+    neovim \
+    networkd-dispatcher \
+    nfs-common \
+    open-iscsi \
+    open-vm-tools \
+    openssh-server \
+    os-prober \
+    packagekit-tools \
+    parted \
+    pigz \
+    polkitd \
+    publicsuffix \
+    python3-neovim \
+    rsync \
+    shared-mime-info \
+    snapd \
+    snmpd \
+    squashfs-tools \
+    ssh-import-id \
+    sudo \
+    systemd \
+    systemd-hwe-hwdb \
+    systemd-timesyncd \
+    thermald \
+    unattended-upgrades \
+    xauth \
+    xclip \
+    xdg-user-dirs \
+    xxd \
+    xz-utils \
+    zerofree \
+  && rm -rf /var/lib/apt/lists/*
 
   RUN ln -s /usr/sbin/grub-install /usr/sbin/grub2-install
   RUN ln -s /usr/bin/grub-editenv /usr/bin/grub2-editenv
-  RUN systemctl enable nohang-desktop.service
   RUN systemctl enable systemd-networkd
   RUN systemctl enable ssh
-  RUN echo "auto lo" > /etc/network/interfaces
-  RUN echo "iface lo inet loopback" >> /etc/network/interfaces
 
   # Enable tmp
   RUN cp -v /usr/share/systemd/tmp.mount /etc/systemd/system/ 
@@ -77,5 +125,5 @@ build-image:
 
 
   # Clear cache
-  RUN apt-get clean && rm -rf /var/cache/* && journalctl --vacuum-size=1K && rm /etc/machine-id && rm /var/lib/dbus/machine-id
+  RUN apt-get clean && rm -rf /var/cache/* && journalctl --vacuum-size=1K && rm /etc/machine-id && rm /var/lib/dbus/machine-id && rm /etc/hostname
   
