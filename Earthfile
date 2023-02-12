@@ -75,10 +75,11 @@ system-grub2-package:
   RUN mkdir /package
   COPY +system-grub2/kairos /package
   COPY +system-grub2/costoolkit /package/usr/share/grub2
-  IF [ "$TARGETARCH" = "arm64" ]
-    RUN mkdir -p /package/usr/share/efi/aarch64
-    COPY +system-grub2/costoolkit/aarch64 /package/usr/share/efi/aarch64
-  END
+  COPY +system-grub2/costoolkit /package/usr/share/efi
+  # IF [ "$TARGETARCH" = "arm64" ]
+  #   RUN mkdir -p /package/usr/share/efi/aarch64
+  #   COPY +system-grub2/costoolkit/aarch64 /package/usr/share/efi/aarch64
+  # END
   SAVE ARTIFACT /package package
 
 
@@ -102,9 +103,7 @@ docker:
   # Instead we need to cherry pick some things from the target kairos+docker...
   # /Begin cherrypick from kairos+docker
   COPY (kairos+framework/framework --FLAVOR=${FLAVOR}) /
-  
   COPY +system-grub2-package/package /
-
   RUN rm -rf /etc/machine-id && touch /etc/machine-id && chmod 444 /etc/machine-id
   
   # IF [ "$FLAVOR" = "ubuntu-22-lts" ]
